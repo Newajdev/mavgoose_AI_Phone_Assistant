@@ -1,6 +1,4 @@
-import { createContext, useRef } from "react";
-
-export const AuthContext = createContext(null);
+import { AuthContext } from "./AuthContext";
 
 const AuthProvider = ({ children }) => {
   const userInfo = {};

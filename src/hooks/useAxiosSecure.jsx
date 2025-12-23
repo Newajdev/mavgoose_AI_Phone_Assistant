@@ -4,13 +4,13 @@ import useAuth from "./useAuth";
 
 
 const AxiosSecure = axios.create({
-    baseURL: 'http://localhost:5000'
+    baseURL: import.meta.env.VITE_API_URL
 })
 
 const useAxiosSecure = () => {
 
     const navigate = useNavigate()
-    const {logOutUser} = useAuth()
+    const { logOutUser } = useAuth()
 
     AxiosSecure.interceptors.request.use(function (config) {
         const token = localStorage.getItem('Acces-Token')
@@ -26,13 +26,13 @@ const useAxiosSecure = () => {
     }, async function (error) {
 
         const status = error.response.status;
-        if(status === 401 || status === 403){
+        if (status === 401 || status === 403) {
             await logOutUser();
             navigate('/login')
 
         }
-        
-        
+
+
         return Promise.reject(error);
     });
     return AxiosSecure;

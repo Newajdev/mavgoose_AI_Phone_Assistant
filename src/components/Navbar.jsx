@@ -20,7 +20,6 @@ export default function Navbar() {
     {
       title: "Call Transfer",
       icon: "mingcute:transfer-3-line",
-      activeI: "",
       activeI: "streamline-ultimate:data-transfer-circle-bold",
       path: "/call-transfer",
     },
@@ -74,34 +73,34 @@ export default function Navbar() {
           </ul>
         </div>
 
-        <button className="
+        <button
+          className="
   group
   flex items-center justify-center gap-4
   bg-red-900 text-white text-2xl
   py-3 px-6 rounded-xl
   transition-all duration-700 ease-in-out
-">
-
-  <Icon
-    icon="heroicons-outline:logout"
-    width={28}
-    height={28}
-    className="
+"
+        >
+          <Icon
+            icon="heroicons-outline:logout"
+            width={28}
+            height={28}
+            className="
       transition-transform duration-700 ease-in-out
       group-hover:translate-x-18
     "
-  />
+          />
 
-  <span
-    className="
+          <span
+            className="
       transition-transform duration-700 ease-in-out
       group-hover:-translate-x-15
     "
-  >
-    Logout
-  </span>
-</button>
-
+          >
+            Logout
+          </span>
+        </button>
       </div>
     </div>
   );

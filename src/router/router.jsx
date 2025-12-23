@@ -1,6 +1,14 @@
 import { createBrowserRouter } from "react-router-dom";
 import DashboardLayout from "../layout/DashboardLayout";
-import Registration from "../pages/authentication/registration";
+import Registration from "../pages/authentication/Registration";
+import Dashboard from "../pages/Dashboard";
+import Login from "../pages/authentication/Login";
+import CallLogs from "../pages/CallLogs";
+import CallTransfer from "../pages/CallTransfer";
+import PricingList from "../pages/Pricinglist";
+import Appointment from "../pages/Appointment";
+import Notifications from "../pages/Notifications";
+import Setting from "../pages/Setting";
 
 const router = createBrowserRouter([
   {
@@ -9,37 +17,37 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/dashboard",
-        element: <>Dashboard</>,
+        element: <Dashboard />
       },
       {
         path: "/call-logs",
-        element: <>Call Logs</>,
+        element: <CallLogs />,
       },
       {
         path: "/call-transfer",
-        element: <>Call Transfer</>,
+        element: <CallTransfer />,
       },
       {
         path: "/pricing-list",
-        element: <>Pricing List</>,
+        element: <PricingList />,
       },
       {
         path: "/appointment",
-        element: <>Appointment</>,
+        element: <Appointment />,
       },
       {
         path: "/notifications",
-        element: <>Notifications</>,
+        element: <Notifications />,
       },
       {
         path: "/setting",
-        element: <>Setting</>,
+        element: <Setting />,
       },
     ],
   },
   {
     path: "/login",
-    element: <login />,
+    element: <Login />,
   },
   {
     path: "/registration",

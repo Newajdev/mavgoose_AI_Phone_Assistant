@@ -1,8 +1,14 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Topbar from "../components/Topbar";
+import { useEffect } from "react";
 
 export default function DashboardLayout() {
+  const Navigate = useNavigate();
+
+  useEffect(() => {
+    Navigate("/dashboard");
+  }, [Navigate]);
   return (
     <div className="grid grid-cols-[300px_1fr] grid-rows-[90px_1fr] h-screen">
       <aside className="row-span-4 h-screen bg-[#111B3C] border-r-2 border-[#2B7FFF33]">
