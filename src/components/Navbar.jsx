@@ -1,10 +1,15 @@
+import { useContext } from "react";
 import { Icon } from "@iconify/react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import NavBtn from "./NavBtn";
+import { AuthContext } from "../provider/AuthContext";
 
-export default function Navbar() {
+export default function Navbar({ onClose }) {
   const location = useLocation();
-  const nabLinks = [
+  const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
+
+  const baseLinks = [
     {
       title: "Dashboard Overview",
       icon: "fluent:home-12-regular",
@@ -24,7 +29,7 @@ export default function Navbar() {
       path: "/call-transfer",
     },
     {
-      title: "Pricing List",
+      title: "Pricing Management",
       icon: "ph:currency-dollar-bold",
       activeI: "heroicons:currency-dollar-16-solid",
       path: "/pricing-list",
@@ -35,6 +40,30 @@ export default function Navbar() {
       activeI: "mingcute:schedule-fill",
       path: "/appointment",
     },
+  ];
+
+  const adminLinks = [
+    {
+      title: "AI behavior Settings",
+      icon: "ant-design:robot-outlined",
+      activeI: "ant-design:robot-filled",
+      path: "/ai-settings",
+    },
+    {
+      title: "API Settings",
+      icon: "solar:phone-calling-outline",
+      activeI: "solar:phone-calling-bold",
+      path: "/api-settings",
+    },
+    {
+      title: "User Management",
+      icon: "rivet-icons:user-group",
+      activeI: "rivet-icons:user-group-solid",
+      path: "/user-management",
+    },
+  ];
+
+  const bottomLinks = [
     {
       title: "Settings",
       icon: "qlementine-icons:settings-16",
@@ -42,15 +71,54 @@ export default function Navbar() {
       path: "/setting",
     },
   ];
+
+  const nabLinks = [
+    ...baseLinks,
+    ...(user?.role === "admin" ? adminLinks : []),
+    ...bottomLinks,
+  ];
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <div className="w-full p-5 flex flex-col justify-between h-screen">
-      <div className="flex items-center justify-center">
-        <img src="/logo.png"></img>
-      </div>
+      {/* Close button for mobile */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 hover:bg-[#2B7FFF15] rounded-lg transition-colors md:hidden"
+        >
+          <Icon icon="mdi:close" className="text-white" width={24} />
+        </button>
+      )}
 
-      <div className="flex-1 flex flex-col justify-between">
-        <div className="flex-1 mt-16">
-          <ul className="flex flex-col gap-6 ">
+      {/* Store Selector for Admin or Logo for Store */}
+      {user?.role === "admin" && (
+        <div>
+          <div className="flex items-center justify-center mb-4">
+          <img src="/logo.png"></img>
+        </div>
+        <div className="bg-[#1D293D80] border border-[#2B7FFF33] rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-[#2B7FFF10] transition-all">
+          <div className="flex items-center gap-3">
+            <div className="size-10 bg-[#2B7FFF15] rounded-lg flex items-center justify-center">
+              <Icon icon="mdi:map-marker" className="text-[#2B7FFF]" width={20} />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-white font-medium text-sm">Brooklyn Heights</span>
+              <span className="text-[#90A1B9] text-[10px]">456 Atlantic Ave, NY</span>
+            </div>
+          </div>
+          <Icon icon="mdi:chevron-down" className="text-[#90A1B9]" />
+        </div>
+        </div>
+      )}
+
+      <div className="flex-1 flex flex-col justify-between my-3 overflow-auto hide-scrollbar">
+        <div className="flex-1 mt-8">
+          <ul className="flex flex-col gap-6">
             {nabLinks.map((itm, idx) => (
               <li key={idx}>
                 {location.pathname === itm.path ? (
@@ -73,7 +141,9 @@ export default function Navbar() {
           </ul>
         </div>
 
+      </div>
         <button
+          onClick={handleLogout}
           className="
   group
   flex items-center justify-center gap-4
@@ -101,7 +171,6 @@ export default function Navbar() {
             Logout
           </span>
         </button>
-      </div>
     </div>
   );
 }

@@ -9,6 +9,12 @@ import PricingList from "../pages/Pricinglist";
 import Appointment from "../pages/Appointment";
 import Notifications from "../pages/Notifications";
 import Setting from "../pages/Setting";
+import SendEmail from "../pages/authentication/SendEmail";
+import Verifyotp from "../pages/authentication/Verifyotp";
+import Changepassword from "../pages/authentication/Changepassword";
+import AISettings from "../pages/AISettings";
+import APISettings from "../pages/APISettings";
+import UserManagement from "../pages/UserManagement";
 
 const router = createBrowserRouter([
   {
@@ -43,6 +49,18 @@ const router = createBrowserRouter([
         path: "/setting",
         element: <Setting />,
       },
+      {
+        path: "/ai-settings",
+        element: <AISettings />,
+      },
+      {
+        path: "/api-settings",
+        element: <APISettings />,
+      },
+      {
+        path: "/user-management",
+        element: <UserManagement />,
+      },
     ],
   },
   {
@@ -52,6 +70,18 @@ const router = createBrowserRouter([
   {
     path: "/registration",
     element: <Registration />,
+  },
+  {
+    path: "/send-email",
+    element: <SendEmail />,
+  },
+  {
+    path: "/verify-otp",
+    element: <Verifyotp />,
+  },
+  {
+    path: "/change-password",
+    element: <Changepassword />,
   },
 ]);
 

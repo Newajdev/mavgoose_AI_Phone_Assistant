@@ -1,9 +1,30 @@
+import { useState, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
 
 const AuthProvider = ({ children }) => {
-  const userInfo = {};
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  const login = (userData) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("user");
+  };
+
+  const authInfo = {
+    user,
+    login,
+    logout,
+  };
+
   return (
-    <AuthContext.Provider value={userInfo}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>
   );
 };
 
