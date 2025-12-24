@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { Icon } from "@iconify/react";
 import { AuthContext } from "../provider/AuthContext";
+import AddPriceModal from "../components/AddPriceModal";
 
 export default function PricingList() {
   const { user } = useContext(AuthContext);
@@ -15,6 +16,9 @@ export default function PricingList() {
 
   const [currentPage, setCurrentPage] = useState(2);
   const totalPages = 11;
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddPriceModalOpen, setIsAddPriceModalOpen] = useState(false);
+  const [selectedPriceItem, setSelectedPriceItem] = useState(null);
 
   const [pricingData, setPricingData] = useState([
     {
@@ -93,7 +97,15 @@ export default function PricingList() {
   };
 
   const handleEdit = (id) => {
-    console.log("Edit pricing:", id);
+    const item = pricingData.find((p) => p.id === id);
+    setSelectedPriceItem(item);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    // Save logic here
+    setIsEditModalOpen(false);
+    setSelectedPriceItem(null);
   };
 
   const renderPageNumbers = () => {
@@ -177,7 +189,10 @@ export default function PricingList() {
 
         {/* Add New Price Button - Only for Admin */}
         {isAdmin && (
-          <button className="bg-[#1D293D] border border-[#2B7FFF33] text-white px-6 py-2 rounded-xl hover:bg-[#2B7FFF15] transition-all flex items-center gap-2">
+          <button
+            onClick={() => setIsAddPriceModalOpen(true)}
+            className="bg-[#1D293D] border border-[#2B7FFF33] text-white px-6 py-2 rounded-xl hover:bg-[#2B7FFF15] transition-all flex items-center gap-2"
+          >
             <Icon icon="mdi:plus" width={20} />
             Add New Price
           </button>
@@ -235,8 +250,8 @@ export default function PricingList() {
                     <button
                       onClick={() => toggleStatus(item.id)}
                       className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs transition-all ${item.status === "Active"
-                          ? "bg-[#05DF7215] text-[#05DF72]"
-                          : "bg-[#90A1B915] text-[#90A1B9]"
+                        ? "bg-[#05DF7215] text-[#05DF72]"
+                        : "bg-[#90A1B915] text-[#90A1B9]"
                         }`}
                     >
                       <div
@@ -248,12 +263,14 @@ export default function PricingList() {
                   </td>
                   <td className="px-6 py-4 text-white">{item.lastUpdated}</td>
                   <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleEdit(item.id)}
-                      className="p-2 hover:bg-[#2B7FFF15] rounded-lg transition-colors"
-                    >
-                      <Icon icon="mdi:pencil" className="text-[#2B7FFF]" width={20} />
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleEdit(item.id)}
+                        className="p-2 hover:bg-[#2B7FFF15] rounded-lg transition-colors"
+                      >
+                        <Icon icon="mdi:pencil" className="text-[#2B7FFF]" width={20} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -279,10 +296,10 @@ export default function PricingList() {
             onClick={() => typeof page === "number" && setCurrentPage(page)}
             disabled={page === "..."}
             className={`size-10 rounded-lg transition-all ${page === currentPage
-                ? "bg-[#2B7FFF] text-white"
-                : page === "..."
-                  ? "text-[#90A1B9] cursor-default"
-                  : "text-white hover:bg-[#2B7FFF15]"
+              ? "bg-[#2B7FFF] text-white"
+              : page === "..."
+                ? "text-[#90A1B9] cursor-default"
+                : "text-white hover:bg-[#2B7FFF15]"
               }`}
           >
             {page}
@@ -298,6 +315,77 @@ export default function PricingList() {
           <Icon icon="mdi:chevron-right" width={20} />
         </button>
       </div>
+
+      {/* Edit Price Modal */}
+      {isEditModalOpen && selectedPriceItem && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[#1D293D] border-2 border-[#2B7FFF33] rounded-2xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-6">
+              <Icon icon="mdi:pencil" className="text-[#2B7FFF]" width={32} />
+              <h3 className="text-xl font-bold text-white">Edit Price</h3>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-[#90A1B9] text-sm font-medium mb-2 block">
+                  Price
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white">$</span>
+                  <input
+                    type="number"
+                    defaultValue={selectedPriceItem.price}
+                    className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl pl-8 pr-4 py-3 text-white focus:border-[#2B7FFF] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[#90A1B9] text-sm font-medium mb-2 block">
+                  Status
+                </label>
+                <select
+                  defaultValue={selectedPriceItem.status}
+                  className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 text-white focus:border-[#2B7FFF] focus:outline-none"
+                >
+                  <option>Active</option>
+                  <option>Disabled</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="flex-1 bg-[#0F172B60] border border-[#2B7FFF15] text-white px-4 py-3 rounded-xl hover:bg-[#2B7FFF15] transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="flex-1 bg-[#2B7FFF] text-white px-4 py-3 rounded-xl hover:bg-[#2B7FFF]/80 transition-all"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Add Price Modal */}
+      {isAddPriceModalOpen && (
+        <AddPriceModal
+          onClose={() => setIsAddPriceModalOpen(false)}
+          onSave={(newData) => {
+            const newPrice = {
+              id: pricingData.length + 1,
+              ...newData,
+              lastUpdated: new Date().toISOString().split('T')[0]
+            };
+            setPricingData([newPrice, ...pricingData]);
+            setIsAddPriceModalOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
