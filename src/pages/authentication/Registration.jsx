@@ -1,17 +1,51 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { NavLink, useNavigate } from 'react-router-dom';
-import AuthContainer from '../../components/AuthContainer';
-import InputField from '../../components/InputField';
-import { Icon } from '@iconify/react';
+import { useForm } from "react-hook-form";
+import { NavLink, useNavigate } from "react-router-dom";
+import AuthContainer from "../../components/AuthContainer";
+import InputField from "../../components/InputField";
+import { Icon } from "@iconify/react";
+import { registerApi } from "../../libs/auth.api";
+import toast from "react-hot-toast";
 
 export default function Registration() {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+  } = useForm();
+
   const navigate = useNavigate();
 
-  const onSubmit = (data) => {
-    console.log("Registration data:", data);
-    navigate('/login');
+  const onSubmit = async (data) => {
+    try {
+      const payload = {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        state_location: data.location,
+        password: data.password,
+      };
+
+      await registerApi(payload);
+
+      toast.success("Account created successfully 🎉");
+      navigate("/login");
+
+    } catch (error) {
+      const resErrors = error?.response?.data;
+
+      if (resErrors) {
+        Object.keys(resErrors).forEach((field) => {
+          setError(field, {
+            type: "manual",
+            message: resErrors[field][0],
+          });
+        });
+        toast.error("Please fix the errors and try again");
+      } else {
+        toast.error("Something went wrong. Try again later");
+      }
+    }
   };
 
   return (

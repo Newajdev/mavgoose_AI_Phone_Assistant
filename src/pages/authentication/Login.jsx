@@ -1,31 +1,46 @@
-import { useContext } from 'react';
-import { useForm } from 'react-hook-form';
-import { NavLink, useNavigate } from 'react-router-dom';
-import AuthContainer from '../../components/AuthContainer';
-import InputField from '../../components/InputField';
-import { Icon } from '@iconify/react';
-import { AuthContext } from '../../provider/AuthContext';
+import { useContext } from "react";
+import { useForm } from "react-hook-form";
+import { NavLink, useNavigate } from "react-router-dom";
+import AuthContainer from "../../components/AuthContainer";
+import InputField from "../../components/InputField";
+import { Icon } from "@iconify/react";
+import { AuthContext } from "../../provider/AuthContext";
+import { loginApi } from "../../libs/auth.api";
+import toast from "react-hot-toast";
 
 export default function Login() {
-  const { register, handleSubmit, formState: { errors }, setError } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+  } = useForm();
+
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const onSubmit = (data) => {
-    // Static Users
-    const users = [
-      { email: 'admin@gmail.com', password: 'admin123', role: 'admin', name: 'Admin User' },
-      { email: 'store@gamil.com', password: 'store123', role: 'store', name: 'Store User' }
-    ];
+  const onSubmit = async (data) => {
+    const toastId = toast.loading("Signing in...");
 
-    const user = users.find(u => u.email === data.email && u.password === data.password);
+    try {
+      const res = await loginApi(data);
 
-    if (user) {
-      login(user);
-      navigate('/dashboard');
-    } else {
-      setError('email', { type: 'manual', message: 'Invalid credentials' });
-      setError('password', { type: 'manual', message: 'Invalid credentials' });
+      login(res.data);
+
+      toast.success("Welcome back 👋", { id: toastId });
+      navigate("/dashboard");
+    } catch (error) {
+      toast.dismiss(toastId);
+
+      const message =
+        error?.response?.data?.detail ||
+        error?.response?.data?.non_field_errors?.[0] ||
+        "Invalid email or password";
+
+      setError("email", { type: "manual", message });
+      setError("password", { type: "manual", message });
+
+      toast.error(message);
     }
   };
 
@@ -36,7 +51,9 @@ export default function Login() {
           <Icon icon="mdi:login" className="text-[#00D1FF]" width={28} />
         </div>
         <h1 className="text-2xl font-bold text-white mb-2">Sign in</h1>
-        <p className="text-[#90A1B9] text-sm text-center">Sign in to manage your dashboard</p>
+        <p className="text-[#90A1B9] text-sm text-center">
+          Sign in to manage your dashboard
+        </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -62,7 +79,10 @@ export default function Login() {
             required="Password is required"
           />
           <div className="flex justify-end">
-            <NavLink to="/send-email" className="text-[#00D1FF] text-xs hover:underline transition-all">
+            <NavLink
+              to="/send-email"
+              className="text-[#00D1FF] text-xs hover:underline"
+            >
               Forgot Password?
             </NavLink>
           </div>
@@ -78,8 +98,11 @@ export default function Login() {
 
       <div className="mt-8 text-center">
         <p className="text-[#90A1B9] text-xs">
-          Don't have an account?{' '}
-          <NavLink to="/registration" className="text-[#00D1FF] font-medium hover:underline">
+          Don't have an account?{" "}
+          <NavLink
+            to="/registration"
+            className="text-[#00D1FF] font-medium hover:underline cursor-pointer"
+          >
             Sign up
           </NavLink>
         </p>
