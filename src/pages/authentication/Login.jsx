@@ -19,30 +19,32 @@ export default function Login() {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const onSubmit = async (data) => {
-    const toastId = toast.loading("Signing in...");
+const onSubmit = async (data) => {
+  const toastId = toast.loading("Signing in...");
 
-    try {
-      const res = await loginApi(data);
+  try {
+    const res = await loginApi(data);
 
-      login(res.data);
+    // ✅ FIXED
+    login(res.data.tokens ?? res.data);
 
-      toast.success("Welcome back 👋", { id: toastId });
-      navigate("/dashboard");
-    } catch (error) {
-      toast.dismiss(toastId);
+    toast.success("Welcome back 👋", { id: toastId });
+    navigate("/dashboard");
+  } catch (error) {
+    toast.dismiss(toastId);
 
-      const message =
-        error?.response?.data?.detail ||
-        error?.response?.data?.non_field_errors?.[0] ||
-        "Invalid email or password";
+    const message =
+      error?.response?.data?.detail ||
+      error?.response?.data?.non_field_errors?.[0] ||
+      "Invalid email or password";
 
-      setError("email", { type: "manual", message });
-      setError("password", { type: "manual", message });
+    setError("email", { type: "manual", message });
+    setError("password", { type: "manual", message });
 
-      toast.error(message);
-    }
-  };
+    toast.error(message);
+  }
+};
+
 
   return (
     <AuthContainer>

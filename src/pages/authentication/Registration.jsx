@@ -16,37 +16,39 @@ export default function Registration() {
 
   const navigate = useNavigate();
 
-  const onSubmit = async (data) => {
-    try {
-      const payload = {
-        first_name: data.firstName,
-        last_name: data.lastName,
-        email: data.email,
-        state_location: data.location,
-        password: data.password,
-      };
+const onSubmit = async (data) => {
+  try {
+    const payload = {
+      first_name: data.firstName,
+      last_name: data.lastName,
+      email: data.email,
+      state_location: data.location,
+      password: data.password,
+    };
 
-      await registerApi(payload);
+    const res = await registerApi(payload);
 
-      toast.success("Account created successfully 🎉");
-      navigate("/login");
+    toast.success(res?.data?.message || "Account created successfully 🎉");
+    navigate("/login");
+  } catch (error) {
+    const resErrors = error?.response?.data;
 
-    } catch (error) {
-      const resErrors = error?.response?.data;
-
-      if (resErrors) {
-        Object.keys(resErrors).forEach((field) => {
+    if (resErrors) {
+      Object.keys(resErrors).forEach((field) => {
+        if (Array.isArray(resErrors[field])) {
           setError(field, {
             type: "manual",
             message: resErrors[field][0],
           });
-        });
-        toast.error("Please fix the errors and try again");
-      } else {
-        toast.error("Something went wrong. Try again later");
-      }
+        }
+      });
+      toast.error("Please fix the errors and try again");
+    } else {
+      toast.error("Something went wrong. Try again later");
     }
-  };
+  }
+};
+
 
   return (
     <AuthContainer>

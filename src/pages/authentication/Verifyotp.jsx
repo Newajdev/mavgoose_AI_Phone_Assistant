@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import AuthContainer from "../../components/AuthContainer";
 import { Icon } from "@iconify/react";
@@ -7,37 +7,51 @@ import toast from "react-hot-toast";
 
 export default function VerifyOTP() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [loading, setLoading] = useState(false);
   const inputs = useRef([]);
   const navigate = useNavigate();
   const location = useLocation();
 
   const email = location.state?.email;
 
-  if (!email) {
-    toast.error("Invalid verification session");
-    navigate("/send-email");
-  }
+  /* 🔒 Guard: invalid session */
+  useEffect(() => {
+    if (!email) {
+      toast.error("Invalid verification session");
+      navigate("/send-email", { replace: true });
+    }
+  }, [email, navigate]);
 
+  /* 🔢 Handle OTP input */
   const handleChange = (element, index) => {
-    if (isNaN(element.value)) return;
+    const value = element.value.replace(/\D/g, "");
+    if (!value) return;
 
     setOtp((prev) =>
-      prev.map((d, idx) => (idx === index ? element.value : d))
+      prev.map((d, idx) => (idx === index ? value : d))
     );
 
-    if (element.value !== "" && index < 5) {
-      inputs.current[index + 1].focus();
+    if (index < 5) {
+      inputs.current[index + 1]?.focus();
     }
   };
 
   const handleKeyDown = (e, index) => {
-    if (e.key === "Backspace" && otp[index] === "" && index > 0) {
-      inputs.current[index - 1].focus();
+    if (e.key === "Backspace") {
+      setOtp((prev) =>
+        prev.map((d, idx) => (idx === index ? "" : d))
+      );
+
+      if (index > 0) {
+        inputs.current[index - 1]?.focus();
+      }
     }
   };
 
-
+  /* ✅ Verify OTP */
   const handleVerify = async () => {
+    if (loading) return;
+
     const code = otp.join("");
 
     if (code.length !== 6) {
@@ -45,6 +59,7 @@ export default function VerifyOTP() {
       return;
     }
 
+    setLoading(true);
     const toastId = toast.loading("Verifying code...");
 
     try {
@@ -59,9 +74,6 @@ export default function VerifyOTP() {
         state: { email },
       });
     } catch (error) {
-      
-      console.log("VERIFY OTP ERROR 👉", error.response?.data);
-
       toast.dismiss(toastId);
 
       const message =
@@ -70,16 +82,20 @@ export default function VerifyOTP() {
         "Invalid or expired OTP";
 
       toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
-
+  /* 🔁 Resend OTP */
   const handleResend = async () => {
+    if (loading) return;
+
+    setLoading(true);
     const toastId = toast.loading("Resending code...");
 
     try {
       await resendOtpApi({ email });
-
       toast.success("New OTP sent 📩", { id: toastId });
     } catch (error) {
       toast.dismiss(toastId);
@@ -89,6 +105,8 @@ export default function VerifyOTP() {
         "Please wait before requesting again";
 
       toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -96,8 +114,13 @@ export default function VerifyOTP() {
     <AuthContainer>
       <div className="flex flex-col items-center mb-8">
         <div className="size-12 bg-[#00D1FF20] rounded-xl flex items-center justify-center mb-4 border border-[#2B7FFF33]">
-          <Icon icon="mdi:shield-check-outline" className="text-[#00D1FF]" width={28} />
+          <Icon
+            icon="mdi:shield-check-outline"
+            className="text-[#00D1FF]"
+            width={28}
+          />
         </div>
+
         <h1 className="text-xl font-bold text-white mb-2">
           Check your email
         </h1>
@@ -106,27 +129,30 @@ export default function VerifyOTP() {
         </p>
       </div>
 
+      {/* OTP INPUTS */}
       <div className="flex justify-between gap-2 md:gap-4 mb-8">
-        {otp.map((data, index) => (
+        {otp.map((value, index) => (
           <input
             key={index}
+            ref={(el) => (inputs.current[index] = el)}
             className="w-10 h-10 md:w-12 md:h-12 bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl text-center text-white font-bold text-lg focus:border-[#2B7FFF] focus:outline-none transition-all"
             type="text"
+            inputMode="numeric"
             maxLength="1"
-            value={data}
+            value={value}
             onChange={(e) => handleChange(e.target, index)}
-            onFocus={(e) => e.target.select()}
             onKeyDown={(e) => handleKeyDown(e, index)}
-            ref={(el) => (inputs.current[index] = el)}
+            onFocus={(e) => e.target.select()}
           />
         ))}
       </div>
 
       <button
         onClick={handleVerify}
-        className="w-full bg-linear-to-r from-[#00D1FF] to-[#2B7FFF] text-white font-bold py-3.5 rounded-xl shadow-[0_4px_15px_#2B7FFF40] transition-all mb-6"
+        disabled={loading}
+        className="w-full bg-linear-to-r from-[#00D1FF] to-[#2B7FFF] text-white font-bold py-3.5 rounded-xl shadow-[0_4px_15px_#2B7FFF40] transition-all mb-6 disabled:opacity-60"
       >
-        Verify Code
+        {loading ? "Verifying..." : "Verify Code"}
       </button>
 
       <div className="text-center italic">

@@ -8,13 +8,6 @@ const AuthProvider = ({ children }) => {
   });
 
   const login = (authData) => {
-    /**
-     * authData = {
-     *   user: {...},
-     *   access: "...",
-     *   refresh: "..."
-     * }
-     */
     setUser(authData);
     localStorage.setItem("user", JSON.stringify(authData));
   };

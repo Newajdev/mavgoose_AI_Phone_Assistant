@@ -1,25 +1,31 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: "http://172.252.13.97:8020",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// 🔐 Attach access token automatically
-api.interceptors.request.use(
-  (config) => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      if (parsedUser?.access) {
-        config.headers.Authorization = `Bearer ${parsedUser.access}`;
-      }
+// 🔑 attach token
+api.interceptors.request.use((config) => {
+  const auth = JSON.parse(localStorage.getItem("auth"));
+  if (auth?.access) {
+    config.headers.Authorization = `Bearer ${auth.access}`;
+  }
+  return config;
+});
+
+// 🚪 auto logout on 401
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err?.response?.status === 401) {
+      localStorage.removeItem("auth");
+      window.location.href = "/login";
     }
-    return config;
-  },
-  (error) => Promise.reject(error)
+    return Promise.reject(err);
+  }
 );
 
 export default api;

@@ -1,15 +1,12 @@
 import api from "./axios";
 
-// 👤 Get my profile
 export const getProfileApi = () => {
   return api.get("/auth/me/");
 };
 
-// ✏️ Update my profile
 export const updateProfileApi = (data) => {
-  return api.put("/auth/me/", data);
+  return api.patch("/auth/me/", data);
 };
-
 
 export const loginApi = (data) => {
   return api.post("/auth/login/", data);
@@ -36,5 +33,5 @@ export const resetPasswordApi = (data) => {
 };
 
 export const changePasswordApi = (data) => {
-  return api.put("/auth/change-password/", data);
+  return api.post("/auth/change-password/", data);
 };

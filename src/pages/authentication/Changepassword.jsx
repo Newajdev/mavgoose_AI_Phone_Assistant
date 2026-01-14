@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 
 export default function Changepassword() {
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const {
     register,
@@ -34,42 +35,73 @@ export default function Changepassword() {
       return;
     }
 
+    const newPassword = data.password.trim();
+    const confirmPassword = data.confirmPassword.trim();
+
+    if (!newPassword || !confirmPassword) {
+      toast.error("Password fields cannot be empty");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("confirmPassword", {
+        type: "manual",
+        message: "Passwords do not match",
+      });
+      toast.error("Passwords do not match");
+      return;
+    }
+
     const toastId = toast.loading("Updating password...");
 
     try {
+      setLoading(true);
+
       // ✅ EXACT payload Django expects
       await resetPasswordApi({
         email: email,
-        new_password: data.password,
-        confirm_password: data.confirmPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
       });
 
       toast.success("Password updated successfully 🎉", { id: toastId });
       setSuccess(true);
+
+      // 🔐 Optional security cleanup
+      localStorage.clear();
     } catch (error) {
       toast.dismiss(toastId);
 
       const resErrors = error?.response?.data;
 
       if (resErrors) {
+        // 🔍 Map backend field errors to form
+        if (resErrors.new_password) {
+          setError("password", {
+            type: "manual",
+            message: resErrors.new_password[0],
+          });
+        }
+
+        if (resErrors.confirm_password) {
+          setError("confirmPassword", {
+            type: "manual",
+            message: resErrors.confirm_password[0],
+          });
+        }
+
         if (typeof resErrors === "string") {
           toast.error(resErrors);
+        } else if (resErrors.detail || resErrors.message) {
+          toast.error(resErrors.detail || resErrors.message);
         } else {
-          Object.keys(resErrors).forEach((field) => {
-            const message = Array.isArray(resErrors[field])
-              ? resErrors[field][0]
-              : resErrors[field];
-
-            setError(field, {
-              type: "manual",
-              message,
-            });
-          });
           toast.error("Failed to reset password");
         }
       } else {
         toast.error("Something went wrong. Try again.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,13 +113,16 @@ export default function Changepassword() {
           <div className="size-20 bg-[#05DF7220] rounded-full flex items-center justify-center mb-8 border-2 border-[#05DF7233]">
             <Icon icon="mdi:check-circle" className="text-[#05DF72]" width={48} />
           </div>
+
           <h1 className="text-2xl font-bold text-white mb-4">
             Password Updated Successfully!
           </h1>
+
           <p className="text-[#90A1B9] text-sm mb-10 leading-relaxed">
             Your password has been changed successfully. You can now sign in
             using your new password.
           </p>
+
           <button
             onClick={() => navigate("/login")}
             className="w-full bg-linear-to-r from-[#00D1FF] to-[#2B7FFF] text-white font-bold py-3.5 rounded-xl"
@@ -109,9 +144,11 @@ export default function Changepassword() {
             width={28}
           />
         </div>
+
         <h1 className="text-xl font-bold text-white mb-2">
           Set new password
         </h1>
+
         <p className="text-[#90A1B9] text-sm text-center">
           Create a different password than your previous one
         </p>
@@ -134,7 +171,13 @@ export default function Changepassword() {
           placeholder="Enter new password"
           name="password"
           register={register}
-          rules={{ required: "Password is required", minLength: 8 }}
+          rules={{
+            required: "Password is required",
+            minLength: {
+              value: 8,
+              message: "Password must be at least 8 characters",
+            },
+          }}
           error={errors.password}
         />
 
@@ -154,9 +197,10 @@ export default function Changepassword() {
 
         <button
           type="submit"
-          className="w-full bg-linear-to-r from-[#00D1FF] to-[#2B7FFF] text-white font-bold py-3.5 rounded-xl"
+          disabled={loading}
+          className="w-full bg-linear-to-r from-[#00D1FF] to-[#2B7FFF] text-white font-bold py-3.5 rounded-xl disabled:opacity-60"
         >
-          Reset Password
+          {loading ? "Resetting..." : "Reset Password"}
         </button>
       </form>
     </AuthContainer>

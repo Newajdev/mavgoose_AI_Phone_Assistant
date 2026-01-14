@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, NavLink } from "react-router-dom";
 import AuthContainer from "../../components/AuthContainer";
@@ -16,14 +16,19 @@ export default function SendEmail() {
   } = useForm();
 
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data) => {
+    if (loading) return;
+
+    setLoading(true);
     const toastId = toast.loading("Sending reset code...");
 
     try {
       await forgotPasswordApi({ email: data.email });
 
       toast.success("OTP sent to your email 📩", { id: toastId });
+
       navigate("/verify-otp", {
         state: { email: data.email },
       });
@@ -41,6 +46,8 @@ export default function SendEmail() {
       });
 
       toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,9 +57,11 @@ export default function SendEmail() {
         <div className="size-12 bg-[#00D1FF20] rounded-xl flex items-center justify-center mb-4 border border-[#2B7FFF33]">
           <Icon icon="mdi:lock-reset" className="text-[#00D1FF]" width={28} />
         </div>
+
         <h1 className="text-xl font-bold text-white mb-2 underline underline-offset-8 decoration-[#00D1FF]">
           Forgot Password
         </h1>
+
         <p className="text-[#90A1B9] text-sm text-center">
           Enter your email address to reset your password
         </p>
@@ -66,14 +75,21 @@ export default function SendEmail() {
           name="email"
           register={register}
           error={errors.email}
-          required="Email is required"
+          rules={{
+            required: "Email is required",
+            pattern: {
+              value: /^\S+@\S+$/i,
+              message: "Enter a valid email address",
+            },
+          }}
         />
 
         <button
           type="submit"
-          className="w-full bg-linear-to-r from-[#00D1FF] to-[#2B7FFF] text-white font-bold py-3.5 rounded-xl shadow-[0_4px_15px_#2B7FFF40] transition-all"
+          disabled={loading}
+          className="w-full bg-linear-to-r from-[#00D1FF] to-[#2B7FFF] text-white font-bold py-3.5 rounded-xl shadow-[0_4px_15px_#2B7FFF40] transition-all disabled:opacity-60"
         >
-          Send Reset Link
+          {loading ? "Sending..." : "Send Reset Link"}
         </button>
 
         <div className="text-center">

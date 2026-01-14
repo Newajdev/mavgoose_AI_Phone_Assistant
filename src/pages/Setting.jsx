@@ -1,78 +1,225 @@
-import React, { useState } from 'react';
-import { Icon } from '@iconify/react';
-import InputField from '../components/InputField';
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import InputField from "../components/InputField";
+import {
+  getProfileApi,
+  updateProfileApi,
+  changePasswordApi,
+} from "../libs/auth.api";
 
 export default function Setting() {
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState("profile");
+
+  /* ================= LOADING STATES ================= */
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  /* ================= PROFILE STATE ================= */
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
-    fullName: 'Jane D.',
-    email: 'jane@gmail.com',
-    storeName: 'Ubreakifix Store',
-    storeAddress: '123 Main Street, New York, NY 10001'
+    firstName: "",
+    lastName: "",
+    email: "",
+    stateLocation: "",
+    profileImage: "",
+  });
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  /* ================= PASSWORD STATE ================= */
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
-  const handleSaveProfile = (e) => {
+  /* ================= LOAD PROFILE ================= */
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await getProfileApi();
+        const data = res.data;
+
+        setProfile({
+          firstName: data.first_name || "",
+          lastName: data.last_name || "",
+          email: data.email || "",
+          stateLocation: data.state_location || "",
+          profileImage: data.profile_image || "",
+        });
+      } catch (err) {
+        toast.error("Failed to load profile");
+      }
+    };
+
+    loadProfile();
+  }, []);
+
+  /* ================= IMAGE CLEANUP ================= */
+  useEffect(() => {
+    return () => {
+      if (selectedImage) {
+        URL.revokeObjectURL(selectedImage);
+      }
+    };
+  }, [selectedImage]);
+
+  /* ================= SAVE PROFILE ================= */
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
-    setIsEditing(false);
+
+    try {
+      setProfileLoading(true);
+
+      const formData = new FormData();
+      formData.append("first_name", profile.firstName);
+      formData.append("last_name", profile.lastName);
+      formData.append("state_location", profile.stateLocation);
+
+      if (selectedImage) {
+        formData.append("profile_image", selectedImage);
+      }
+
+      await updateProfileApi(formData);
+
+      const res = await getProfileApi();
+      const data = res.data;
+
+      setProfile({
+        firstName: data.first_name || "",
+        lastName: data.last_name || "",
+        email: data.email || "",
+        stateLocation: data.state_location || "",
+        profileImage: data.profile_image || "",
+      });
+
+      setSelectedImage(null);
+      setIsEditing(false);
+
+      toast.success("Profile updated successfully");
+    } catch (err) {
+      toast.error(
+        err.response?.data?.detail ||
+          err.response?.data?.message ||
+          "Profile update failed"
+      );
+    } finally {
+      setProfileLoading(false);
+    }
   };
 
-  const handleSavePassword = (e) => {
+  /* ================= CHANGE PASSWORD ================= */
+  const handleSavePassword = async (e) => {
     e.preventDefault();
+
+    const { oldPassword, newPassword, confirmPassword } = passwordForm;
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      toast.error("All password fields are required");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      toast.error("New password must be at least 8 characters");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+
+      await changePasswordApi({
+        old_password: oldPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      });
+
+      toast.success("Password changed successfully");
+
+      setPasswordForm({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (err) {
+      const data = err.response?.data;
+
+      if (data?.old_password) {
+        toast.error(data.old_password[0]);
+      } else if (data?.confirm_password) {
+        toast.error(data.confirm_password[0]);
+      } else {
+        toast.error(data?.detail || "Password change failed");
+      }
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   return (
     <div className="p-2 md:p-6">
       <h1 className="text-2xl font-bold text-white mb-8">Settings</h1>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-12 mb-12 border-b border-[#2B7FFF10] pb-2">
-        <button
-          onClick={() => setActiveTab('profile')}
-          className={`text-sm font-medium transition-all relative pb-2 ${activeTab === 'profile' ? 'text-white' : 'text-[#90A1B9] hover:text-white'
+      {/* ================= TABS ================= */}
+      <div className="flex gap-12 mb-12 border-b border-[#2B7FFF10] pb-2">
+        {["profile", "password"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`text-sm font-medium pb-2 relative ${
+              activeTab === tab
+                ? "text-white"
+                : "text-[#90A1B9] hover:text-white"
             }`}
-        >
-          Profile
-          {activeTab === 'profile' && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#2B7FFF]"></div>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('password')}
-          className={`text-sm font-medium transition-all relative pb-2 ${activeTab === 'password' ? 'text-white' : 'text-[#90A1B9] hover:text-white'
-            }`}
-        >
-          Password Settings
-          {activeTab === 'password' && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#2B7FFF]"></div>
-          )}
-        </button>
+          >
+            {tab === "profile" ? "Profile" : "Password Settings"}
+            {activeTab === tab && (
+              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#2B7FFF]" />
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* Profile Tab */}
-      {activeTab === 'profile' && (
-        <div className="max-w-4xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+      {/* ================= PROFILE TAB ================= */}
+      {activeTab === "profile" && (
+        <div className="max-w-4xl">
+          {/* Profile Image */}
           <div className="mb-8">
-            <p className="text-[#90A1B9] text-sm font-medium mb-4">Profile Image</p>
+            <p className="text-[#90A1B9] text-sm mb-4">Profile Image</p>
+
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="size-20 rounded-full border-2 border-[#2B7FFF33] overflow-hidden bg-[#1D293D]">
-                  <img
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jane"
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {isEditing && (
-                  <button className="absolute -bottom-1 -right-1 size-7 bg-[#2B7FFF] rounded-full flex items-center justify-center border-2 border-[#0F172B] shadow-lg text-white">
-                    <Icon icon="mdi:camera" width={14} />
-                  </button>
-                )}
+              <div className="size-20 rounded-full overflow-hidden border-2 border-[#2B7FFF33]">
+                <img
+                  src={
+                    selectedImage
+                      ? URL.createObjectURL(selectedImage)
+                      : profile.profileImage ||
+                        "https://api.dicebear.com/7.x/avataaars/svg"
+                  }
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
               </div>
+
+              {isEditing && (
+                <label className="cursor-pointer text-[#2B7FFF] text-sm">
+                  Change
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => setSelectedImage(e.target.files[0])}
+                  />
+                </label>
+              )}
+
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-1.5 rounded-lg bg-[#2B7FFF15] border border-[#2B7FFF33] text-[#2B7FFF] text-xs font-semibold hover:bg-[#2B7FFF25] transition-all"
+                  className="px-4 py-1.5 rounded-lg bg-[#2B7FFF15] text-[#2B7FFF] text-xs font-semibold"
                 >
                   Edit Profile
                 </button>
@@ -81,82 +228,108 @@ export default function Setting() {
           </div>
 
           <form onSubmit={handleSaveProfile} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+            <div className="grid md:grid-cols-2 gap-8">
               {isEditing ? (
                 <>
                   <InputField
-                    label="Full Name"
-                    icon="mdi:account-outline"
-                    value={profile.fullName}
-                    onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
+                    label="First Name"
+                    value={profile.firstName}
+                    onChange={(e) =>
+                      setProfile({ ...profile, firstName: e.target.value })
+                    }
                   />
                   <InputField
-                    label="Email"
-                    icon="mdi:email-outline"
-                    value={profile.email}
-                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                    label="Last Name"
+                    value={profile.lastName}
+                    onChange={(e) =>
+                      setProfile({ ...profile, lastName: e.target.value })
+                    }
                   />
+                  <InputField label="Email" value={profile.email} disabled />
                   <InputField
-                    label="Store Name"
-                    icon="mdi:store-outline"
-                    value={profile.storeName}
-                    onChange={(e) => setProfile({ ...profile, storeName: e.target.value })}
-                  />
-                  <InputField
-                    label="Store Address"
-                    icon="mdi:map-marker-outline"
-                    value={profile.storeAddress}
-                    onChange={(e) => setProfile({ ...profile, storeAddress: e.target.value })}
+                    label="State Location"
+                    value={profile.stateLocation}
+                    onChange={(e) =>
+                      setProfile({
+                        ...profile,
+                        stateLocation: e.target.value,
+                      })
+                    }
                   />
                 </>
               ) : (
                 <>
-                  <DataGrid label="Full Name" value={profile.fullName} />
+                  <DataGrid label="First Name" value={profile.firstName} />
+                  <DataGrid label="Last Name" value={profile.lastName} />
                   <DataGrid label="Email" value={profile.email} />
-                  <DataGrid label="Store Name" value={profile.storeName} />
-                  <DataGrid label="Store Address" value={profile.storeAddress} />
+                  <DataGrid
+                    label="State Location"
+                    value={profile.stateLocation}
+                  />
                 </>
               )}
             </div>
 
             {isEditing && (
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  className="bg-[#05DF72] text-white px-10 py-3 rounded-xl font-bold hover:bg-[#05DF72CC] transition-all shadow-[0_4px_15px_#05DF7220]"
-                >
-                  Save
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={profileLoading}
+                className="bg-[#05DF72] px-10 py-3 rounded-xl text-white font-bold disabled:opacity-50"
+              >
+                {profileLoading ? "Saving..." : "Save"}
+              </button>
             )}
           </form>
         </div>
       )}
 
-      {/* Password Tab */}
-      {activeTab === 'password' && (
-        <div className="max-w-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+      {/* ================= PASSWORD TAB ================= */}
+      {activeTab === "password" && (
+        <div className="max-w-xl">
           <form onSubmit={handleSavePassword} className="space-y-8">
             <InputField
-              label="New Password"
-              icon="mdi:lock-outline"
+              label="Old Password"
               type="password"
-              placeholder="••••••••"
+              value={passwordForm.oldPassword}
+              onChange={(e) =>
+                setPasswordForm({
+                  ...passwordForm,
+                  oldPassword: e.target.value,
+                })
+              }
             />
+
             <InputField
-              label="Confirm New Password"
-              icon="mdi:lock-check-outline"
+              label="New Password"
               type="password"
-              placeholder="••••••••"
+              value={passwordForm.newPassword}
+              onChange={(e) =>
+                setPasswordForm({
+                  ...passwordForm,
+                  newPassword: e.target.value,
+                })
+              }
             />
-            <div className="pt-4">
-              <button
-                type="submit"
-                className="bg-[#05DF72] text-white px-10 py-3 rounded-xl font-bold hover:bg-[#05DF72CC] transition-all shadow-[0_4px_15px_#05DF7220]"
-              >
-                Save
-              </button>
-            </div>
+
+            <InputField
+              label="Confirm Password"
+              type="password"
+              value={passwordForm.confirmPassword}
+              onChange={(e) =>
+                setPasswordForm({
+                  ...passwordForm,
+                  confirmPassword: e.target.value,
+                })
+              }
+            />
+
+            <button
+              type="submit"
+              disabled={passwordLoading}
+              className="bg-[#05DF72] px-10 py-3 rounded-xl text-white font-bold disabled:opacity-50"
+            >
+              {passwordLoading ? "Saving..." : "Save"}
+            </button>
           </form>
         </div>
       )}
@@ -164,11 +337,12 @@ export default function Setting() {
   );
 }
 
+/* ================= DISPLAY GRID ================= */
 function DataGrid({ label, value }) {
   return (
-    <div className="space-y-2">
-      <p className="text-[#90A1B9] text-sm font-medium opacity-60 uppercase tracking-wider">{label}:</p>
-      <p className="text-white text-lg font-medium">{value}</p>
+    <div>
+      <p className="text-[#90A1B9] text-xs uppercase">{label}</p>
+      <p className="text-white text-lg">{value || "-"}</p>
     </div>
   );
 }
