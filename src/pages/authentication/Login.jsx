@@ -7,6 +7,7 @@ import { Icon } from "@iconify/react";
 import { AuthContext } from "../../provider/AuthContext";
 import { loginApi } from "../../libs/auth.api";
 import toast from "react-hot-toast";
+import { setToken } from "../../utils/cookies";
 
 export default function Login() {
   const {
@@ -25,8 +26,21 @@ const onSubmit = async (data) => {
   try {
     const res = await loginApi(data);
 
-    // ✅ FIXED
-    login(res.data.tokens ?? res.data);
+    // Extract tokens from response
+    const tokens = res.data.tokens ?? res.data;
+    const accessToken = tokens.access || tokens.access_token || tokens.token;
+    const refreshToken = tokens.refresh || tokens.refresh_token;
+
+    // Save tokens in cookies
+    if (accessToken) {
+      setToken(accessToken, 'access');
+    }
+    if (refreshToken) {
+      setToken(refreshToken, 'refresh');
+    }
+
+    // Save user data in context
+    login(tokens);
 
     toast.success("Welcome back 👋", { id: toastId });
     navigate("/dashboard");

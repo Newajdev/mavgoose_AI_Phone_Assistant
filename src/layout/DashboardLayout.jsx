@@ -1,11 +1,13 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Topbar from "../components/Topbar";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
 
   useEffect(() => {
     navigate("/dashboard");
