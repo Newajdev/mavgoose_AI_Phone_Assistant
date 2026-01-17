@@ -5,8 +5,9 @@ import AuthContainer from "../../components/AuthContainer";
 import InputField from "../../components/InputField";
 import { Icon } from "@iconify/react";
 import { AuthContext } from "../../provider/AuthContext";
-import { loginApi } from "../../libs/auth.api";
+import { getProfileApi, loginApi } from "../../libs/auth.api";
 import toast from "react-hot-toast";
+
 
 export default function Login() {
   const {
@@ -23,25 +24,28 @@ const onSubmit = async (data) => {
   const toastId = toast.loading("Signing in...");
 
   try {
-    const res = await loginApi(data);
+    // ✅ CLEAR PREVIOUS USER (CRITICAL)
+    localStorage.removeItem("auth");
+    localStorage.removeItem("user");
 
-    // ✅ FIXED
-    login(res.data.tokens ?? res.data);
+    const loginRes = await loginApi(data);
+    const profileRes = await getProfileApi();
+
+    const authData = {
+      access: loginRes.data.access,
+      refresh: loginRes.data.refresh,
+      ...profileRes.data, // id, email, role
+    };
+
+    login(authData);
+
+    console.log("FINAL AUTH:", authData);
 
     toast.success("Welcome back 👋", { id: toastId });
     navigate("/dashboard");
-  } catch (error) {
+  } catch (err) {
     toast.dismiss(toastId);
-
-    const message =
-      error?.response?.data?.detail ||
-      error?.response?.data?.non_field_errors?.[0] ||
-      "Invalid email or password";
-
-    setError("email", { type: "manual", message });
-    setError("password", { type: "manual", message });
-
-    toast.error(message);
+    toast.error("Login failed");
   }
 };
 

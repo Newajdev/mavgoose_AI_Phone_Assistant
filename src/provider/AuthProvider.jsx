@@ -3,22 +3,27 @@ import { AuthContext } from "./AuthContext";
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("user");
+    const savedUser = localStorage.getItem("auth"); // ✅ FIX
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
   const login = (authData) => {
     setUser(authData);
-    localStorage.setItem("user", JSON.stringify(authData));
+    localStorage.setItem("auth", JSON.stringify(authData)); // ✅ FIX
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("user");
+    localStorage.removeItem("auth");
+    localStorage.removeItem("user"); // ✅ FIX
   };
+
+
+  const role = user?.role;
 
   const authInfo = {
     user,
+    role,
     login,
     logout,
   };
