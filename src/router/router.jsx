@@ -15,6 +15,7 @@ import Changepassword from "../pages/authentication/Changepassword";
 import AISettings from "../pages/AISettings";
 import APISettings from "../pages/APISettings";
 import UserManagement from "../pages/UserManagement";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 const router = createBrowserRouter([
   {
@@ -23,47 +24,91 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/dashboard",
-        element: <Dashboard />
+        element: (
+          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager", "Staff"]}>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/call-logs",
-        element: <CallLogs />,
+        element: (
+          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager", "Staff"]}>
+            <CallLogs />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/call-transfer",
-        element: <CallTransfer />,
+        element: (
+          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager"]}>
+            <CallTransfer />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/pricing-list",
-        element: <PricingList />,
+        element: (
+          <ProtectedRoute allowedRoles={["StoreManager"]}>
+            <PricingList />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/pricing-management",
-        element: <PricingList />,
+        element: (
+          <ProtectedRoute allowedRoles={["SuperAdmin"]}>
+            <PricingList />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/appointment",
-        element: <Appointment />,
+        element: (
+          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager", "Staff"]}>
+            <Appointment />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/notifications",
-        element: <Notifications />,
+        element: (
+          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager", "Staff"]}>
+            <Notifications />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/setting",
-        element: <Setting />,
+        element: (
+          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager", "Staff"]}>
+            <Setting />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/ai-behavior-settings",
-        element: <AISettings />,
+        element: (
+          <ProtectedRoute allowedRoles={["SuperAdmin"]}>
+            <AISettings />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/api-settings",
-        element: <APISettings />,
+        element: (
+          <ProtectedRoute allowedRoles={["SuperAdmin"]}>
+            <APISettings />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/user-management",
-        element: <UserManagement />,
+        element: (
+          <ProtectedRoute allowedRoles={["SuperAdmin"]}>
+            <UserManagement />
+          </ProtectedRoute>
+        ),
       },
     ],
   },

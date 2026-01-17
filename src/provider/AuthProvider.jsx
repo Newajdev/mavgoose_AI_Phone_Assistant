@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { AuthContext } from "./AuthContext";
+import { removeAllTokens } from "../utils/cookies";
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("auth"); // ✅ FIX
     return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  const [selectedStore, setSelectedStore] = useState(() => {
+    const savedStore = localStorage.getItem("selectedStore");
+    return savedStore ? JSON.parse(savedStore) : null;
   });
 
   const login = (authData) => {
@@ -26,6 +32,8 @@ const AuthProvider = ({ children }) => {
     role,
     login,
     logout,
+    selectedStore,
+    selectStore,
   };
 
   return (

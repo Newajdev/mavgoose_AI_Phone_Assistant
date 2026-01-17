@@ -7,6 +7,7 @@ import { Icon } from "@iconify/react";
 import { AuthContext } from "../../provider/AuthContext";
 import { getProfileApi, loginApi } from "../../libs/auth.api";
 import toast from "react-hot-toast";
+import { setToken } from "../../utils/cookies";
 
 
 export default function Login() {

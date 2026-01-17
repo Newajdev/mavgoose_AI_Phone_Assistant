@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getToken, removeAllTokens } from "../utils/cookies";
 
 const api = axios.create({
   baseURL: "http://172.252.13.97:8020",

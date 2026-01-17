@@ -18,6 +18,7 @@ export default function Navbar({ onClose }) {
   const { user, logout, selectedStore, selectStore } = useContext(AuthContext);
   const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
 
+<<<<<<< HEAD
   /* 🔽 ADD START */
   const [nabLinks, setNabLinks] = useState([]);
   /* 🔼 ADD END */
@@ -38,9 +39,102 @@ export default function Navbar({ onClose }) {
 
   const StoreLinks = [
     { title: "Pricing list", icon: "ph:currency-dollar-bold", activeI: "heroicons:currency-dollar-16-solid", path: "/pricing-list" },
+=======
+  // Helper function to get user role
+  const getUserRole = () => {
+    if (!user) return null;
+    const role = user?.role || user?.user?.role || null;
+    if (!role) return null;
+    
+    // Normalize role
+    const roleUpper = role.toUpperCase();
+    if (roleUpper === "SUPERADMIN" || roleUpper === "SUPER_ADMIN") return "SuperAdmin";
+    if (roleUpper === "STOREMANAGER" || roleUpper === "STORE_MANAGER") return "StoreManager";
+    if (roleUpper === "STAFF") return "Staff";
+    return role;
+  };
+
+  const userRole = getUserRole();
+
+  // Base links - available to all roles
+  const baseLinks = [
+    {
+      title: "Dashboard Overview",
+      icon: "fluent:home-12-regular",
+      activeI: "fluent:home-24-filled",
+      path: "/dashboard",
+      roles: ["SuperAdmin", "StoreManager", "Staff"],
+    },
+    {
+      title: "Call Logs",
+      icon: "proicons:call",
+      activeI: "fluent:call-12-filled",
+      path: "/call-logs",
+      roles: ["SuperAdmin", "StoreManager", "Staff"],
+    },
+    {
+      title: "Call Transfer",
+      icon: "mingcute:transfer-3-line",
+      activeI: "streamline-ultimate:data-transfer-circle-bold",
+      path: "/call-transfer",
+      roles: ["SuperAdmin", "StoreManager"],
+    },
+    {
+      title: "Appointments",
+      icon: "hugeicons:appointment-01",
+      activeI: "mingcute:schedule-fill",
+      path: "/appointment",
+      roles: ["SuperAdmin", "StoreManager", "Staff"],
+    },
   ];
 
+  // SuperAdmin only links
+  const superAdminLinks = [
+    {
+      title: "Pricing Management",
+      icon: "ph:currency-dollar-bold",
+      activeI: "heroicons:currency-dollar-16-solid",
+      path: "/pricing-management",
+      roles: ["SuperAdmin"],
+    },
+    {
+      title: "AI behavior Settings",
+      icon: "ant-design:robot-outlined",
+      activeI: "ant-design:robot-filled",
+      path: "/ai-behavior-settings",
+      roles: ["SuperAdmin"],
+    },
+    {
+      title: "API Settings",
+      icon: "solar:phone-calling-outline",
+      activeI: "solar:phone-calling-bold",
+      path: "/api-settings",
+      roles: ["SuperAdmin"],
+    },
+    {
+      title: "User Management",
+      icon: "rivet-icons:user-group",
+      activeI: "rivet-icons:user-group-solid",
+      path: "/user-management",
+      roles: ["SuperAdmin"],
+    },
+  ];
+
+  // StoreManager links
+  const storeManagerLinks = [
+    {
+      title: "Pricing list",
+      icon: "ph:currency-dollar-bold",
+      activeI: "heroicons:currency-dollar-16-solid",
+      path: "/pricing-list",
+      roles: ["StoreManager"],
+    },
+>>>>>>> 094976ebb64f35800092c07135e5413e2c89d8d8
+  ];
+
+  // Settings - available to all
   const bottomLinks = [
+<<<<<<< HEAD
     { title: "Settings", icon: "qlementine-icons:settings-16", activeI: "clarity:settings-solid", path: "/setting" },
   ];
 
@@ -66,6 +160,36 @@ export default function Navbar({ onClose }) {
   }
 }, [user]);
   /* 🔼 ADD END */
+=======
+    {
+      title: "Settings",
+      icon: "qlementine-icons:settings-16",
+      activeI: "clarity:settings-solid",
+      path: "/setting",
+      roles: ["SuperAdmin", "StoreManager", "Staff"],
+    },
+  ];
+
+  // Filter links based on user role
+  const getFilteredLinks = () => {
+    if (!userRole) return [];
+    
+    const allLinks = [...baseLinks];
+    
+    if (userRole === "SuperAdmin") {
+      allLinks.push(...superAdminLinks);
+    } else if (userRole === "StoreManager") {
+      allLinks.push(...storeManagerLinks);
+    }
+    
+    allLinks.push(...bottomLinks);
+    
+    // Filter links that user has access to
+    return allLinks.filter(link => link.roles.includes(userRole));
+  };
+
+  const nabLinks = getFilteredLinks();
+>>>>>>> 094976ebb64f35800092c07135e5413e2c89d8d8
 
   const handleLogout = () => {
     logout();
@@ -86,9 +210,14 @@ export default function Navbar({ onClose }) {
       <div className="flex items-center justify-center mb-4">
         <img src="/logo.png" />
       </div>
+<<<<<<< HEAD
 
       {/* Admin store selector — unchanged */}
       {user?.role === "SUPER_ADMIN" && (
+=======
+      {/* Store Selector for SuperAdmin only */}
+      {userRole === "SuperAdmin" && (
+>>>>>>> 094976ebb64f35800092c07135e5413e2c89d8d8
         <div
           onClick={() => setIsStoreModalOpen(true)}
           className="bg-[#1D293D80] border border-[#2B7FFF33] rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-[#2B7FFF10] transition-all"
