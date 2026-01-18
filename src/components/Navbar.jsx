@@ -18,7 +18,7 @@ export default function Navbar({ onClose }) {
   const { user, logout, selectedStore, selectStore } = useContext(AuthContext);
   const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
 
-<<<<<<< HEAD
+
   /* 🔽 ADD START */
   const [nabLinks, setNabLinks] = useState([]);
   /* 🔼 ADD END */
@@ -39,7 +39,7 @@ export default function Navbar({ onClose }) {
 
   const StoreLinks = [
     { title: "Pricing list", icon: "ph:currency-dollar-bold", activeI: "heroicons:currency-dollar-16-solid", path: "/pricing-list" },
-=======
+
   // Helper function to get user role
   const getUserRole = () => {
     if (!user) return null;
@@ -129,12 +129,12 @@ export default function Navbar({ onClose }) {
       path: "/pricing-list",
       roles: ["StoreManager"],
     },
->>>>>>> 094976ebb64f35800092c07135e5413e2c89d8d8
+
   ];
 
   // Settings - available to all
   const bottomLinks = [
-<<<<<<< HEAD
+
     { title: "Settings", icon: "qlementine-icons:settings-16", activeI: "clarity:settings-solid", path: "/setting" },
   ];
 
@@ -160,7 +160,7 @@ export default function Navbar({ onClose }) {
   }
 }, [user]);
   /* 🔼 ADD END */
-=======
+
     {
       title: "Settings",
       icon: "qlementine-icons:settings-16",
@@ -189,7 +189,6 @@ export default function Navbar({ onClose }) {
   };
 
   const nabLinks = getFilteredLinks();
->>>>>>> 094976ebb64f35800092c07135e5413e2c89d8d8
 
   const handleLogout = () => {
     logout();
@@ -210,14 +209,13 @@ export default function Navbar({ onClose }) {
       <div className="flex items-center justify-center mb-4">
         <img src="/logo.png" />
       </div>
-<<<<<<< HEAD
 
       {/* Admin store selector — unchanged */}
       {user?.role === "SUPER_ADMIN" && (
-=======
+
       {/* Store Selector for SuperAdmin only */}
       {userRole === "SuperAdmin" && (
->>>>>>> 094976ebb64f35800092c07135e5413e2c89d8d8
+
         <div
           onClick={() => setIsStoreModalOpen(true)}
           className="bg-[#1D293D80] border border-[#2B7FFF33] rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-[#2B7FFF10] transition-all"
