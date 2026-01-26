@@ -290,6 +290,7 @@ export default function Setting() {
             <InputField
               label="Old Password"
               type="password"
+              placeholder="Enter your old password"
               value={passwordForm.oldPassword}
               onChange={(e) =>
                 setPasswordForm({
@@ -302,6 +303,7 @@ export default function Setting() {
             <InputField
               label="New Password"
               type="password"
+              placeholder="Enter your new password"
               value={passwordForm.newPassword}
               onChange={(e) =>
                 setPasswordForm({
@@ -314,6 +316,7 @@ export default function Setting() {
             <InputField
               label="Confirm Password"
               type="password"
+              placeholder="Enter your confirm password"
               value={passwordForm.confirmPassword}
               onChange={(e) =>
                 setPasswordForm({

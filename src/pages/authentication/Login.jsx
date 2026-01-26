@@ -9,46 +9,58 @@ import { getProfileApi, loginApi } from "../../libs/auth.api";
 import toast from "react-hot-toast";
 import { setToken } from "../../utils/cookies";
 
-
 export default function Login() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    setError,
+    formState: { errors }, 
   } = useForm();
 
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-const onSubmit = async (data) => {
+  const onSubmit = async (data) => {
   const toastId = toast.loading("Signing in...");
+  console.log("FORM DATA:", data);
 
   try {
-    // ✅ CLEAR PREVIOUS USER (CRITICAL)
-    localStorage.removeItem("auth");
-    localStorage.removeItem("user");
+    const loginRes = await loginApi({
+      email: data.email,
+      password: data.password,
+    });
 
-    const loginRes = await loginApi(data);
+    console.log("LOGIN RES:", loginRes.data);
+
+    // ✅ CORRECT TOKEN PATH
+    setToken(loginRes.data.tokens.access, "access");
+    setToken(loginRes.data.tokens.refresh, "refresh");
+
     const profileRes = await getProfileApi();
+    console.log("PROFILE RES:", profileRes.data);
 
     const authData = {
-      access: loginRes.data.access,
-      refresh: loginRes.data.refresh,
-      ...profileRes.data, // id, email, role
+      access: loginRes.data.tokens.access,
+      refresh: loginRes.data.tokens.refresh,
+      ...profileRes.data,
     };
+
+    console.log("AUTH DATA:", authData);
 
     login(authData);
 
-    console.log("FINAL AUTH:", authData);
-
-    toast.success("Welcome back 👋", { id: toastId });
+    toast.success("Welcome 👋", { id: toastId });
     navigate("/dashboard");
   } catch (err) {
+    console.error("LOGIN ERROR:", err?.response?.data);
     toast.dismiss(toastId);
-    toast.error("Login failed");
+    toast.error(
+      err?.response?.data?.detail ||
+      "Invalid email or password"
+    );
   }
 };
+
+
 
 
   return (

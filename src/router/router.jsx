@@ -41,23 +41,23 @@ const router = createBrowserRouter([
       {
         path: "/call-transfer",
         element: (
-          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager"]}>
+          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager", "Staff"]}>
             <CallTransfer />
           </ProtectedRoute>
         ),
       },
-      {
-        path: "/pricing-list",
-        element: (
-          <ProtectedRoute allowedRoles={["StoreManager"]}>
-            <PricingList />
-          </ProtectedRoute>
-        ),
-      },
+      // {
+      //   path: "/pricing-list",
+      //   element: (
+      //     <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager"]}>
+      //       <PricingList />
+      //     </ProtectedRoute>
+      //   ),
+      // },
       {
         path: "/pricing-management",
         element: (
-          <ProtectedRoute allowedRoles={["SuperAdmin"]}>
+          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager", "Staff"]}>
             <PricingList />
           </ProtectedRoute>
         ),
@@ -73,7 +73,7 @@ const router = createBrowserRouter([
       {
         path: "/notifications",
         element: (
-          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager", "Staff"]}>
+          <ProtectedRoute allowedRoles={["SuperAdmin"]}>
             <Notifications />
           </ProtectedRoute>
         ),
@@ -81,7 +81,7 @@ const router = createBrowserRouter([
       {
         path: "/setting",
         element: (
-          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager", "Staff"]}>
+          <ProtectedRoute allowedRoles={["SuperAdmin","StoreManager", "Staff"]}>
             <Setting />
           </ProtectedRoute>
         ),
@@ -89,7 +89,7 @@ const router = createBrowserRouter([
       {
         path: "/ai-behavior-settings",
         element: (
-          <ProtectedRoute allowedRoles={["SuperAdmin"]}>
+          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager"]}>
             <AISettings />
           </ProtectedRoute>
         ),
@@ -97,7 +97,7 @@ const router = createBrowserRouter([
       {
         path: "/api-settings",
         element: (
-          <ProtectedRoute allowedRoles={["SuperAdmin"]}>
+          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager"]}>
             <APISettings />
           </ProtectedRoute>
         ),

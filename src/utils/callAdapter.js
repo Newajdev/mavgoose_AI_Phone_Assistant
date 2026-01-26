@@ -1,5 +1,5 @@
 export const adaptCall = (call) => {
-  const start = new Date(call.started_at);
+  const start = call.started_at ? new Date(call.started_at) : null;
 
   const statusMap = {
     AI_RESOLVED: "AI Resolved",
@@ -9,31 +9,53 @@ export const adaptCall = (call) => {
   };
 
   return {
+    // IDs
     id: call.id,
-    phoneNumber: call.phone_number,
 
-    date: start.toLocaleDateString(),
-    time: start.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    // Phone
+    phoneNumber: call.phone_number || "-", 
 
-    duration: call.duration,
+    // Date & Time (UI safe)
+    date: start ? start.toLocaleDateString() : "-",
+    time: start
+      ? start.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "-",
 
-    status: statusMap[call.call_type] || call.call_type,
+    // Duration
+    duration: call.duration || "-",
 
+    // Call type
+    callType: call.call_type,
+    status: statusMap[call.call_type] || call.call_type || "-",
+
+    // Outcome
+    outcomeRaw: call.outcome,
     outcome: call.outcome
       ? call.outcome.replaceAll("_", " ")
       : "-",
 
+    // Issue
+    issueId: call.issue,
     issueType: call.issue_name || "Unknown",
 
-    audioUrl: call.audio_url,
+    // Audio
+    audioUrl: call.audio_url || null,
 
-    transcript:
-      call.transcripts?.map((t) => ({
-        role: t.speaker,
-        content: t.message,
-      })) || [],
+    // Transcripts (backend aligned)
+    transcripts: Array.isArray(call.transcripts)
+      ? call.transcripts.map((t) => ({
+          speaker: t.speaker,
+          message: t.message,
+          timestamp: t.timestamp,
+        }))
+      : [],
+
+    // Meta (future use)
+    startedAt: call.started_at,
+    endedAt: call.ended_at,
+    createdAt: call.created_at,
   };
 };

@@ -10,7 +10,6 @@ export default function InputField({
   name,
   rules,
   error,
-  value,
   disabled = false,
   ...props
 }) {
@@ -39,7 +38,6 @@ export default function InputField({
         <input
           type={type}
           placeholder={placeholder}
-          value={value}
           disabled={disabled}
           className="w-full bg-transparent border-none text-white px-3 py-3.5 focus:outline-none placeholder-[#90A1B9] text-sm disabled:opacity-70"
           {...(register && name ? register(name, rules) : {})}

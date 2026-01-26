@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import CallSearchFilter from "../components/CallSearchFilter";
 import CallList from "../components/CallList";
 import CallDetails from "../components/CallDetails";
@@ -10,13 +10,22 @@ import { adaptCall } from "../utils/callAdapter";
 export default function CallLogs() {
   const [calls, setCalls] = useState([]);
   const [selectedCall, setSelectedCall] = useState(null);
+  const firstLoadRef = useRef(true);
 
   const fetchCalls = async (params = {}) => {
     try {
       const res = await getCallLogsApi(params);
-      const adaptedCalls = res.data.map(adaptCall);
+      const adaptedCalls = Array.isArray(res.data)
+        ? res.data.map(adaptCall)
+        : [];
+
       setCalls(adaptedCalls);
-      setSelectedCall(adaptedCalls[0] || null);
+
+      // Only auto-select on first load
+      if (firstLoadRef.current) {
+        setSelectedCall(adaptedCalls[0] || null);
+        firstLoadRef.current = false;
+      }
     } catch (err) {
       toast.error("Failed to load call logs");
     }
@@ -31,10 +40,10 @@ export default function CallLogs() {
       <CallSearchFilter
         onSearch={(v) => fetchCalls({ search: v })}
         onTypeChange={(v) =>
-          fetchCalls({ call_type: v === "all" ? "" : v })
+          fetchCalls({ call_type: v === "all" ? undefined : v })
         }
         onIssueChange={(v) =>
-          fetchCalls({ issue: v === "all" ? "" : v })
+          fetchCalls({ issue: v === "all" ? undefined : v })
         }
         onDateChange={(v) => fetchCalls({ date: v })}
       />

@@ -4,40 +4,25 @@ import { removeAllTokens } from "../utils/cookies";
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("auth"); // ✅ FIX
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-
-  const [selectedStore, setSelectedStore] = useState(() => {
-    const savedStore = localStorage.getItem("selectedStore");
-    return savedStore ? JSON.parse(savedStore) : null;
+    const saved = localStorage.getItem("auth");
+    return saved ? JSON.parse(saved) : null;
   });
 
   const login = (authData) => {
     setUser(authData);
-    localStorage.setItem("auth", JSON.stringify(authData)); // ✅ FIX
+    localStorage.setItem("auth", JSON.stringify(authData));
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem("auth");
-    localStorage.removeItem("user"); // ✅ FIX
+    removeAllTokens();
   };
 
-
-  const role = user?.role;
-
-  const authInfo = {
-    user,
-    role,
-    login,
-    logout,
-    selectedStore,
-    selectStore,
-  };
+  const role = user?.role || user?.user?.role;
 
   return (
-    <AuthContext.Provider value={authInfo}>
+    <AuthContext.Provider value={{ user, role, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

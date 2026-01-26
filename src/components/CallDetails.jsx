@@ -12,19 +12,21 @@ export default function CallDetails({ call }) {
 
   return (
     <div className="bg-[#0F172B80] border-2 border-[#2B7FFF33] rounded-2xl p-8 h-full overflow-y-auto">
-      <h2 className="text-xl text-white font-medium mb-6">Call Details</h2>
+      <h2 className="text-xl text-white font-medium mb-6">
+        Call Details
+      </h2>
 
       <p className="text-white mb-2">
-        <strong>Phone:</strong> {call.phoneNumber}
+        <strong>Phone: </strong> {call.phoneNumber}
       </p>
       <p className="text-white mb-2">
-        <strong>Date:</strong> {call.date} {call.time}
+        <strong>Date: </strong> {call.date} {call.time}
       </p>
       <p className="text-white mb-2">
-        <strong>Duration:</strong> {call.duration}
+        <strong>Duration: </strong> {call.duration}
       </p>
       <p className="text-white mb-6">
-        <strong>Outcome:</strong> {call.outcome}
+        <strong>Outcome: </strong> {call.outcome}
       </p>
 
       {call.audioUrl && (
@@ -38,16 +40,22 @@ export default function CallDetails({ call }) {
       </h3>
 
       <div className="space-y-4">
-        {call.transcript.map((msg, i) => (
-          <div key={i}>
-            <p className="text-sm font-bold text-[#2B7FFF]">
-              {msg.role}:
-            </p>
-            <p className="text-sm text-white opacity-90">
-              {msg.content}
-            </p>
-          </div>
-        ))}
+        {call.transcripts.length === 0 ? (
+          <p className="text-sm text-[#90A1B9]">
+            No transcript available
+          </p>
+        ) : (
+          call.transcripts.map((msg, i) => (
+            <div key={i}>
+              <p className="text-sm font-bold text-[#2B7FFF]">
+                {msg.speaker}:
+              </p>
+              <p className="text-sm text-white opacity-90">
+                {msg.message}
+              </p>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
