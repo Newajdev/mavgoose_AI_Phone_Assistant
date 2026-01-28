@@ -20,8 +20,8 @@ export default function Login() {
   const navigate = useNavigate();
 
   const onSubmit = async (data) => {
+
   const toastId = toast.loading("Signing in...");
-  console.log("FORM DATA:", data);
 
   try {
     const loginRes = await loginApi({
@@ -29,14 +29,11 @@ export default function Login() {
       password: data.password,
     });
 
-    console.log("LOGIN RES:", loginRes.data);
-
-    // ✅ CORRECT TOKEN PATH
+    // save tokens
     setToken(loginRes.data.tokens.access, "access");
     setToken(loginRes.data.tokens.refresh, "refresh");
 
     const profileRes = await getProfileApi();
-    console.log("PROFILE RES:", profileRes.data);
 
     const authData = {
       access: loginRes.data.tokens.access,
@@ -44,21 +41,20 @@ export default function Login() {
       ...profileRes.data,
     };
 
-    console.log("AUTH DATA:", authData);
-
     login(authData);
 
     toast.success("Welcome 👋", { id: toastId });
+
     navigate("/dashboard");
+
   } catch (err) {
-    console.error("LOGIN ERROR:", err?.response?.data);
     toast.dismiss(toastId);
     toast.error(
-      err?.response?.data?.detail ||
-      "Invalid email or password"
+      err?.response?.data?.detail || "Invalid email or password"
     );
   }
 };
+
 
 
 

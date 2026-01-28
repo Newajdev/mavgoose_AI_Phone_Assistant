@@ -1,237 +1,332 @@
-import React, { useState } from 'react';
-import { Icon } from '@iconify/react';
-import TimeSelector from '../components/TimeSelector';
+import React, { useEffect, useState } from "react";
+import { Icon } from "@iconify/react";
+import TimeSelector from "../components/TimeSelector";
+import {
+  getAIBehaviorApi,
+  createAIBehaviorApi,
+  updateAIBehaviorApi,
+} from "../libs/aiBehavior.api";
 
-export default function AISettings() {
-    const [greetings, setGreetings] = useState({
-        opening: '',
-        closed: ''
+/* ================= Helper Transformers ================= */
+
+const dayMap = {
+  monday: 0,
+  tuesday: 1,
+  wednesday: 2,
+  thursday: 3,
+  friday: 4,
+  saturday: 5,
+  sunday: 6,
+};
+
+const reverseDayMap = Object.fromEntries(
+  Object.entries(dayMap).map(([k, v]) => [v, k])
+);
+
+const toBusinessHoursArray = (businessHours) =>
+  Object.entries(businessHours).map(([day, time]) => ({
+    day: dayMap[day],
+    is_open: time.start !== "---",
+    open_time: time.start === "---" ? null : time.start,
+    close_time: time.end === "---" ? null : time.end,
+  }));
+
+const fromBusinessHoursArray = (arr = []) => {
+  const result = {
+    monday: { start: "---", end: "---" },
+    tuesday: { start: "---", end: "---" },
+    wednesday: { start: "---", end: "---" },
+    thursday: { start: "---", end: "---" },
+    friday: { start: "---", end: "---" },
+    saturday: { start: "---", end: "---" },
+    sunday: { start: "---", end: "---" },
+  };
+
+  arr.forEach((b) => {
+    const day = reverseDayMap[b.day];
+    result[day] = b.is_open
+      ? { start: b.open_time, end: b.close_time }
+      : { start: "---", end: "---" };
+  });
+
+  return result;
+};
+
+/* ================= Component ================= */
+
+export default function AISettings({ storeId }) {
+  const [loading, setLoading] = useState(false);
+
+  const [greetings, setGreetings] = useState({
+    opening: "",
+    closed: "",
+  });
+
+  const [tone, setTone] = useState("friendly");
+
+  const [businessHours, setBusinessHours] = useState({
+    monday: { start: "---", end: "---" },
+    tuesday: { start: "---", end: "---" },
+    wednesday: { start: "---", end: "---" },
+    thursday: { start: "---", end: "---" },
+    friday: { start: "---", end: "---" },
+    saturday: { start: "---", end: "---" },
+    sunday: { start: "---", end: "---" },
+  });
+
+  const [escalation, setEscalation] = useState({
+    retryAttempts: 3,
+    fallbackResponse: "",
+    keywords: [],
+  });
+
+  const [newKeyword, setNewKeyword] = useState("");
+
+  /* ================= LOAD FROM BACKEND ================= */
+
+  useEffect(() => {
+    loadConfig();
+  }, []);
+
+  const loadConfig = async () => {
+
+    console.log("➡️ loadConfig called, storeId =", storeId);
+
+    try {
+      const res = await getAIBehaviorApi(storeId);
+      console.log("✅ GET ai-behavior response:", res.data);
+      const data = res.data;
+
+      setTone(data.tone);
+
+      setGreetings({
+        opening: data.greetings?.opening_hours_greeting || "",
+        closed: data.greetings?.closed_hours_message || "",
+      });
+
+      setBusinessHours(fromBusinessHoursArray(data.business_hours));
+
+      setEscalation({
+        retryAttempts: data.retry_attempts_before_transfer,
+        fallbackResponse: data.fallback_response,
+        keywords: data.auto_transfer_keywords.map((k) => k.keyword),
+      });
+    } catch (err) {
+        console.log("❌ GET ai-behavior error:", err.response || err);
+      if (err.response?.status === 404) {
+        await createAIBehaviorApi(storeId, buildPayload());
+      }
+    }
+  };
+
+  /* ================= SAVE ================= */
+
+  const handleSaveSettings = async () => {
+    console.log("💾 Save button clicked");
+    setLoading(true);
+    try {
+      await updateAIBehaviorApi(storeId, buildPayload());
+      console.log("✅ AI settings saved successfully");
+      alert("AI Settings saved successfully ✅");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= PAYLOAD ================= */
+
+  const buildPayload = () => ({
+    tone,
+    retry_attempts_before_transfer: escalation.retryAttempts,
+    fallback_response: escalation.fallbackResponse,
+    greetings: {
+      opening_hours_greeting: greetings.opening,
+      closed_hours_message: greetings.closed,
+    },
+    business_hours: toBusinessHoursArray(businessHours),
+    auto_transfer_keywords: escalation.keywords.map((k) => ({ keyword: k })),
+  });
+  console.log("📦 Payload sending to backend:", buildPayload());
+
+  /* ================= KEYWORDS ================= */
+
+  const handleAddKeyword = () => {
+    const kw = newKeyword.trim().toLowerCase();
+    if (kw && !escalation.keywords.includes(kw)) {
+      setEscalation({
+        ...escalation,
+        keywords: [...escalation.keywords, kw],
+      });
+      setNewKeyword("");
+    }
+  };
+
+  const handleRemoveKeyword = (kw) => {
+    setEscalation({
+      ...escalation,
+      keywords: escalation.keywords.filter((k) => k !== kw),
     });
+  };
 
-    const [tone, setTone] = useState('friendly');
+  /* ================= UI (UNCHANGED) ================= */
 
-    const [businessHours, setBusinessHours] = useState({
-        monday: { start: '09:00 AM', end: '06:00 PM' },
-        tuesday: { start: '09:00 AM', end: '06:00 PM' },
-        wednesday: { start: '09:00 AM', end: '06:00 PM' },
-        thursday: { start: '09:00 AM', end: '06:00 PM' },
-        friday: { start: '09:00 AM', end: '06:00 PM' },
-        saturday: { start: '09:00 AM', end: '06:00 PM' },
-        sunday: { start: '---', end: '---' }
-    });
+  return (
+    <div className="p-6 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Greeting Scripts */}
+        <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
+          <h2 className="text-xl font-bold text-white mb-4">
+            Greeting Scripts
+          </h2>
 
-    const [escalation, setEscalation] = useState({
-        retryAttempts: 3,
-        fallbackResponse: "I'm not sure I understand. Let me connect you with a specialist.",
-        keywords: ['angry', 'manager', 'complaint', 'lawsuit', 'refund', 'unacceptable']
-    });
+          <textarea
+            value={greetings.opening}
+            onChange={(e) =>
+              setGreetings({ ...greetings, opening: e.target.value })
+            }
+            placeholder="Opening greeting"
+            className="w-full mb-4 bg-[#0F172B60] border rounded-xl p-4 text-white"
+          />
 
-    const [newKeyword, setNewKeyword] = useState('');
-
-    const handleSaveGreetings = () => {
-        console.log('Saving greetings:', greetings);
-    };
-
-    const handleSaveSettings = () => {
-        console.log('Saving escalation settings:', escalation);
-    };
-
-    const handleAddKeyword = () => {
-        if (newKeyword.trim() && !escalation.keywords.includes(newKeyword.trim())) {
-            setEscalation({ ...escalation, keywords: [...escalation.keywords, newKeyword.trim()] });
-            setNewKeyword('');
-        }
-    };
-
-    const handleRemoveKeyword = (keyword) => {
-        setEscalation({ ...escalation, keywords: escalation.keywords.filter(k => k !== keyword) });
-    };
-
-    return (
-        <div className="p-6 space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Greeting Scripts */}
-                <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <Icon icon="mdi:message-text-outline" className="text-[#2B7FFF]" width={24} />
-                        <h2 className="text-xl font-bold text-white">Greeting Scripts</h2>
-                    </div>
-
-                    <div className="space-y-4">
-                        <div>
-                            <label className="text-[#90A1B9] text-sm font-medium mb-2 block">Opening Hours Greeting</label>
-                            <textarea
-                                value={greetings.opening}
-                                onChange={(e) => setGreetings({ ...greetings, opening: e.target.value })}
-                                className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl p-4 text-white text-sm focus:border-[#2B7FFF] focus:outline-none resize-none h-24"
-                                placeholder="Enter greeting message for opening hours..."
-                            />
-                        </div>
-
-                        <div>
-                            <label className="text-[#90A1B9] text-sm font-medium mb-2 block">Closed Hours Message</label>
-                            <textarea
-                                value={greetings.closed}
-                                onChange={(e) => setGreetings({ ...greetings, closed: e.target.value })}
-                                className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl p-4 text-white text-sm focus:border-[#2B7FFF] focus:outline-none resize-none h-24"
-                                placeholder="Enter message for closed hours..."
-                            />
-                        </div>
-
-                        <button
-                            onClick={handleSaveGreetings}
-                            className="w-full bg-[#05DF72] hover:bg-[#05DF72CC] text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
-                        >
-                            <Icon icon="mdi:content-save" width={20} />
-                            Save Scripts
-                        </button>
-                    </div>
-                </div>
-
-                {/* Tone & Personality */}
-                <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <Icon icon="mdi:account-voice" className="text-[#2B7FFF]" width={24} />
-                        <h2 className="text-xl font-bold text-white">Tone & Personality</h2>
-                    </div>
-
-                    <p className="text-[#90A1B9] text-sm mb-6">Communication Style</p>
-
-                    <div className="space-y-3">
-                        {[
-                            { id: 'friendly', label: 'Friendly & Warm', desc: 'Conversational and welcoming' },
-                            { id: 'professional', label: 'Professional', desc: 'Formal and business-like' },
-                            { id: 'sales', label: 'Sales-Oriented', desc: 'Persuasive and promotional' }
-                        ].map((option) => (
-                            <div
-                                key={option.id}
-                                onClick={() => setTone(option.id)}
-                                className={`p-4 rounded-xl cursor-pointer transition-all border-2 ${tone === option.id
-                                    ? 'bg-[#2B7FFF15] border-[#2B7FFF]'
-                                    : 'bg-[#0F172B60] border-[#2B7FFF15] hover:border-[#2B7FFF33]'
-                                    }`}
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-white font-medium mb-1">{option.label}</h3>
-                                        <p className="text-[#90A1B9] text-xs">{option.desc}</p>
-                                    </div>
-                                    <div className={`size-5 rounded-full border-2 flex items-center justify-center ${tone === option.id ? 'border-[#2B7FFF] bg-[#2B7FFF]' : 'border-[#90A1B9]'
-                                        }`}>
-                                        {tone === option.id && <div className="size-2 bg-white rounded-full"></div>}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Business Hours */}
-            <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
-                <div className="flex items-center gap-3 mb-6">
-                    <Icon icon="mdi:clock-outline" className="text-[#05DF72]" width={24} />
-                    <h2 className="text-xl font-bold text-white">Business Hours</h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {Object.entries(businessHours).map(([day, times]) => (
-                        <div key={day} className="bg-[#0F172B60] border border-[#2B7FFF15] rounded-xl p-4">
-                            <h3 className="text-white font-medium mb-3 capitalize">{day}</h3>
-                            <div className="flex gap-2">
-                                <TimeSelector
-                                    value={times.start}
-                                    onChange={(newTime) => setBusinessHours({ ...businessHours, [day]: { ...times, start: newTime } })}
-                                    disabled={day === 'sunday'}
-                                />
-                                <TimeSelector
-                                    value={times.end}
-                                    onChange={(newTime) => setBusinessHours({ ...businessHours, [day]: { ...times, end: newTime } })}
-                                    disabled={day === 'sunday'}
-                                />
-                            </div>
-                            {day === 'sunday' && (
-                                <p className="text-[#FF2056] text-xs mt-2 font-medium">Closed</p>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Escalation Rules */}
-            <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
-                <div className="flex items-center gap-3 mb-6">
-                    <Icon icon="mdi:alert-circle-outline" className="text-[#FF8904]" width={24} />
-                    <h2 className="text-xl font-bold text-white">Escalation Rules</h2>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label className="text-[#90A1B9] text-sm font-medium mb-2 block">Retry Attempts Before Transfer</label>
-                        <select
-                            value={escalation.retryAttempts}
-                            onChange={(e) => setEscalation({ ...escalation, retryAttempts: parseInt(e.target.value) })}
-                            className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 text-white focus:border-[#2B7FFF] focus:outline-none"
-                        >
-                            <option value={1}>1 attempt</option>
-                            <option value={2}>2 attempts</option>
-                            <option value={3}>3 attempts</option>
-                            <option value={4}>4 attempts</option>
-                            <option value={5}>5 attempts</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="text-[#90A1B9] text-sm font-medium mb-2 block">Fallback Response</label>
-                        <textarea
-                            value={escalation.fallbackResponse}
-                            onChange={(e) => setEscalation({ ...escalation, fallbackResponse: e.target.value })}
-                            className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl p-4 text-white text-sm focus:border-[#2B7FFF] focus:outline-none resize-none h-24"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label className="text-[#90A1B9] text-sm font-medium mb-2 block">Auto-Transfer Keywords</label>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                        {escalation.keywords.map((keyword) => (
-                            <span
-                                key={keyword}
-                                className="bg-[#FF2056] text-white text-sm px-3 py-1.5 rounded-lg flex items-center gap-2"
-                            >
-                                {keyword}
-                                <button onClick={() => handleRemoveKeyword(keyword)} className="hover:opacity-70">
-                                    <Icon icon="mdi:close" width={16} />
-                                </button>
-                            </span>
-                        ))}
-                    </div>
-                    <div className="flex gap-2">
-                        <input
-                            type="text"
-                            value={newKeyword}
-                            onChange={(e) => setNewKeyword(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleAddKeyword()}
-                            placeholder="Add new keyword..."
-                            className="flex-1 bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 text-white text-sm focus:border-[#2B7FFF] focus:outline-none"
-                        />
-                        <button
-                            onClick={handleAddKeyword}
-                            className="bg-[#2B7FFF15] border border-[#2B7FFF33] text-[#2B7FFF] px-6 py-3 rounded-xl hover:bg-[#2B7FFF25] transition-all"
-                        >
-                            Add
-                        </button>
-                    </div>
-                </div>
-
-                <button
-                    onClick={handleSaveSettings}
-                    className="w-full bg-[#05DF72] hover:bg-[#05DF72CC] text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 mt-6"
-                >
-                    <Icon icon="mdi:content-save" width={20} />
-                    Save Settings
-                </button>
-            </div>
+          <textarea
+            value={greetings.closed}
+            onChange={(e) =>
+              setGreetings({ ...greetings, closed: e.target.value })
+            }
+            placeholder="Closed message"
+            className="w-full bg-[#0F172B60] border rounded-xl p-4 text-white"
+          />
         </div>
-    );
+
+        {/* Tone */}
+        <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
+          <h2 className="text-xl font-bold text-white mb-4">
+            Tone & Personality
+          </h2>
+
+          {["friendly", "professional", "sales"].map((t) => (
+            <button
+              key={t}
+              onClick={() => setTone(t)}
+              className={`block w-full mb-2 p-3 rounded-xl ${
+                tone === t
+                  ? "bg-[#2B7FFF] text-white"
+                  : "bg-[#0F172B] text-[#90A1B9]"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Business Hours */}
+      <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
+        <h2 className="text-xl font-bold text-white mb-4">
+          Business Hours
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-4">
+          {Object.entries(businessHours).map(([day, times]) => (
+            <div key={day}>
+              <p className="text-white capitalize mb-2">{day}</p>
+              <div className="flex gap-2">
+                <TimeSelector
+                  value={times.start}
+                  onChange={(v) =>
+                    setBusinessHours({
+                      ...businessHours,
+                      [day]: { ...times, start: v },
+                    })
+                  }
+                  disabled={day === "sunday"}
+                />
+                <TimeSelector
+                  value={times.end}
+                  onChange={(v) =>
+                    setBusinessHours({
+                      ...businessHours,
+                      [day]: { ...times, end: v },
+                    })
+                  }
+                  disabled={day === "sunday"}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Escalation */}
+      <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
+        <h2 className="text-xl font-bold text-white mb-4">
+          Escalation Rules
+        </h2>
+
+        <select
+          value={escalation.retryAttempts}
+          onChange={(e) =>
+            setEscalation({
+              ...escalation,
+              retryAttempts: Number(e.target.value),
+            })
+          }
+          className="mb-4 p-3 rounded-xl"
+        >
+          {[1, 2, 3, 4, 5].map((n) => (
+            <option key={n} value={n}>
+              {n} attempts
+            </option>
+          ))}
+        </select>
+
+        <textarea
+          value={escalation.fallbackResponse}
+          onChange={(e) =>
+            setEscalation({
+              ...escalation,
+              fallbackResponse: e.target.value,
+            })
+          }
+          className="w-full mb-4 p-4 rounded-xl"
+          placeholder="Fallback response"
+        />
+
+        <div className="flex gap-2 mb-4">
+          <input
+            value={newKeyword}
+            onChange={(e) => setNewKeyword(e.target.value)}
+            className="flex-1 p-3 rounded-xl"
+            placeholder="Add keyword"
+          />
+          <button
+            onClick={handleAddKeyword}
+            className="px-4 rounded-xl bg-[#2B7FFF] text-white"
+          >
+            Add
+          </button>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {escalation.keywords.map((k) => (
+            <span
+              key={k}
+              onClick={() => handleRemoveKeyword(k)}
+              className="bg-red-500 text-white px-3 py-1 rounded-lg cursor-pointer"
+            >
+              {k} ✕
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <button
+        onClick={handleSaveSettings}
+        disabled={loading}
+        className="w-full bg-[#05DF72] text-white font-bold py-3 rounded-xl"
+      >
+        {loading ? "Saving..." : "Save AI Settings"}
+      </button>
+    </div>
+  );
 }

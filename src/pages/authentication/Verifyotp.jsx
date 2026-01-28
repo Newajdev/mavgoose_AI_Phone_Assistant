@@ -14,7 +14,6 @@ export default function VerifyOTP() {
 
   const email = location.state?.email;
 
-  /* 🔒 Guard: invalid session */
   useEffect(() => {
     if (!email) {
       toast.error("Invalid verification session");
@@ -22,7 +21,6 @@ export default function VerifyOTP() {
     }
   }, [email, navigate]);
 
-  /* 🔢 Handle OTP input */
   const handleChange = (element, index) => {
     const value = element.value.replace(/\D/g, "");
     if (!value) return;
@@ -48,7 +46,6 @@ export default function VerifyOTP() {
     }
   };
 
-  /* ✅ Verify OTP */
   const handleVerify = async () => {
     if (loading) return;
 
@@ -68,7 +65,7 @@ export default function VerifyOTP() {
         otp: code,
       });
 
-      toast.success("OTP verified successfully ✅", { id: toastId });
+      toast.success("OTP verified successfully.", { id: toastId });
 
       navigate("/change-password", {
         state: { email },
@@ -87,7 +84,6 @@ export default function VerifyOTP() {
     }
   };
 
-  /* 🔁 Resend OTP */
   const handleResend = async () => {
     if (loading) return;
 

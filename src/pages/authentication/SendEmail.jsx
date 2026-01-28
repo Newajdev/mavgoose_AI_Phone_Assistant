@@ -19,37 +19,44 @@ export default function SendEmail() {
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data) => {
-    if (loading) return;
 
-    setLoading(true);
-    const toastId = toast.loading("Sending reset code...");
+  if (loading) {
+    return;
+  }
 
-    try {
-      await forgotPasswordApi({ email: data.email });
+  setLoading(true);
 
-      toast.success("OTP sent to your email 📩", { id: toastId });
+  const toastId = toast.loading("Sending reset code...");
 
-      navigate("/verify-otp", {
-        state: { email: data.email },
-      });
-    } catch (error) {
-      toast.dismiss(toastId);
+  try {
+    const res = await forgotPasswordApi({ email: data.email });
 
-      const message =
-        error?.response?.data?.email?.[0] ||
-        error?.response?.data?.detail ||
-        "Failed to send reset email";
+    console.log("➡️ Response Data:", res?.data);
 
-      setError("email", {
-        type: "manual",
-        message,
-      });
+    toast.success("OTP sent to your email 📩", { id: toastId });
 
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    navigate("/verify-otp", {
+      state: { email: data.email },
+    });
+  } catch (error) {
+
+    toast.dismiss(toastId);
+
+    const message =
+      error?.response?.data?.email?.[0] ||
+      error?.response?.data?.detail ||
+      "Failed to send reset email";
+
+    setError("email", {
+      type: "manual",
+      message,
+    });
+
+    toast.error(message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <AuthContainer>

@@ -176,7 +176,7 @@ export default function Navbar({ onClose }) {
       )}
 
       {/* NAV LINKS */}
-      <ul className="flex flex-col gap-6 mt-8 flex-1">
+      <ul className="flex flex-col gap-4 mt-8 flex-1">
         {navLinks.map((itm) => (
           <li key={itm.path}>
             {location.pathname === itm.path ? (

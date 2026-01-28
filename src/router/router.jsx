@@ -46,14 +46,14 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      // {
-      //   path: "/pricing-list",
-      //   element: (
-      //     <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager"]}>
-      //       <PricingList />
-      //     </ProtectedRoute>
-      //   ),
-      // },
+      {
+        path: "/pricing-list",
+        element: (
+          <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager"]}>
+            <PricingList />
+          </ProtectedRoute>
+        ),
+      },
       {
         path: "/pricing-management",
         element: (
@@ -88,6 +88,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/ai-behavior-settings",
+        
         element: (
           <ProtectedRoute allowedRoles={["SuperAdmin", "StoreManager"]}>
             <AISettings />

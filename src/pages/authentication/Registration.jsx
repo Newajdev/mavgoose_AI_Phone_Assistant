@@ -17,6 +17,7 @@ export default function Registration() {
   const navigate = useNavigate();
 
 const onSubmit = async (data) => {
+
   try {
     const payload = {
       first_name: data.firstName,
@@ -30,6 +31,7 @@ const onSubmit = async (data) => {
 
     toast.success(res?.data?.message || "Account created successfully 🎉");
     navigate("/login");
+
   } catch (error) {
     const resErrors = error?.response?.data;
 
@@ -42,6 +44,7 @@ const onSubmit = async (data) => {
           });
         }
       });
+
       toast.error("Please fix the errors and try again");
     } else {
       toast.error("Something went wrong. Try again later");

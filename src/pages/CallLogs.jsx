@@ -20,6 +20,7 @@ export default function CallLogs() {
         : [];
 
       setCalls(adaptedCalls);
+      console.log(adaptedCalls);
 
       // Only auto-select on first load
       if (firstLoadRef.current) {
