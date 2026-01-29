@@ -61,7 +61,6 @@ export default function CallTransfer() {
         </div>
       </div>
 
-      {/* Conditions Section */}
       <TransferConditions rules={rules} />
     </div>
   );

@@ -8,17 +8,13 @@ body[data-theme="dark"] {
 
 .hide-scrollbar {
   -ms-overflow-style: none;
-  /* IE and Edge */
   scrollbar-width: none;
-  /* Firefox */
 }
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
-  /* Chrome, Safari, Opera */
 }
 
-/* Custom Slider Styles */
 input[type="range"].slider {
   -webkit-appearance: none;
   appearance: none;

@@ -1,6 +1,5 @@
 import api from "./axios";
 
-/* ================= META LIST APIs ================= */
 
 export const getCategoriesApi = () =>
   api.get("/api/v1/services/categories/");
@@ -18,7 +17,6 @@ export const getDeviceModelsApi = (brand) =>
 export const getRepairTypesApi = () =>
   api.get("/api/v1/services/repair-types/");
 
-/* ================= PRICE LIST APIs ================= */
 
 export const getPriceListApi = (filters = {}) =>
   api.get("/api/v1/services/price-list/", {

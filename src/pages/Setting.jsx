@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import toast from "react-hot-toast";
 import InputField from "../components/InputField";
 import {
@@ -6,8 +6,11 @@ import {
   updateProfileApi,
   changePasswordApi,
 } from "../libs/auth.api";
+import { AuthContext } from "../provider/AuthContext";
 
 export default function Setting() {
+  const { fetchProfile } = useContext(AuthContext);
+
   const [activeTab, setActiveTab] = useState("profile");
 
   /* ================= LOADING STATES ================= */
@@ -23,6 +26,7 @@ export default function Setting() {
     stateLocation: "",
     profileImage: "",
   });
+
   const [selectedImage, setSelectedImage] = useState(null);
 
   /* ================= PASSWORD STATE ================= */
@@ -46,7 +50,7 @@ export default function Setting() {
           stateLocation: data.state_location || "",
           profileImage: data.profile_image || "",
         });
-      } catch (err) {
+      } catch {
         toast.error("Failed to load profile");
       }
     };
@@ -81,6 +85,10 @@ export default function Setting() {
 
       await updateProfileApi(formData);
 
+      // GLOBAL PROFILE SYNC (Topbar + everywhere)
+      await fetchProfile();
+
+      // reload local profile (for settings page)
       const res = await getProfileApi();
       const data = res.data;
 
@@ -96,12 +104,8 @@ export default function Setting() {
       setIsEditing(false);
 
       toast.success("Profile updated successfully");
-    } catch (err) {
-      toast.error(
-        err.response?.data?.detail ||
-          err.response?.data?.message ||
-          "Profile update failed"
-      );
+    } catch {
+      toast.error("Profile update failed");
     } finally {
       setProfileLoading(false);
     }
@@ -145,15 +149,7 @@ export default function Setting() {
         confirmPassword: "",
       });
     } catch (err) {
-      const data = err.response?.data;
-
-      if (data?.old_password) {
-        toast.error(data.old_password[0]);
-      } else if (data?.confirm_password) {
-        toast.error(data.confirm_password[0]);
-      } else {
-        toast.error(data?.detail || "Password change failed");
-      }
+      toast.error(err.response?.data?.detail || "Password change failed");
     } finally {
       setPasswordLoading(false);
     }
@@ -196,8 +192,9 @@ export default function Setting() {
                   src={
                     selectedImage
                       ? URL.createObjectURL(selectedImage)
-                      : profile.profileImage ||
-                        "https://api.dicebear.com/7.x/avataaars/svg"
+                      : profile.profileImage
+                      ? `${profile.profileImage}?t=${Date.now()}`
+                      : "https://api.dicebear.com/7.x/avataaars/svg"
                   }
                   alt="Profile"
                   className="w-full h-full object-cover"
@@ -211,7 +208,17 @@ export default function Setting() {
                     type="file"
                     accept="image/*"
                     hidden
-                    onChange={(e) => setSelectedImage(e.target.files[0])}
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+
+                      if (!file.type.startsWith("image/")) {
+                        toast.error("Please select a valid image file");
+                        return;
+                      }
+
+                      setSelectedImage(file);
+                    }}
                   />
                 </label>
               )}
@@ -290,7 +297,6 @@ export default function Setting() {
             <InputField
               label="Old Password"
               type="password"
-              placeholder="Enter your old password"
               value={passwordForm.oldPassword}
               onChange={(e) =>
                 setPasswordForm({
@@ -303,7 +309,6 @@ export default function Setting() {
             <InputField
               label="New Password"
               type="password"
-              placeholder="Enter your new password"
               value={passwordForm.newPassword}
               onChange={(e) =>
                 setPasswordForm({
@@ -316,7 +321,6 @@ export default function Setting() {
             <InputField
               label="Confirm Password"
               type="password"
-              placeholder="Enter your confirm password"
               value={passwordForm.confirmPassword}
               onChange={(e) =>
                 setPasswordForm({

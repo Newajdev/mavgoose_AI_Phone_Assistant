@@ -40,3 +40,4 @@ export default function Topbar({ isMobile = false }) {
     </div>
   );
 }
+

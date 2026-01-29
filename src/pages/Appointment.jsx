@@ -74,12 +74,12 @@ export default function Appointment() {
 
       <BookingLink url="https://techstore.com/book?id=store123" />
 
-      <DropDown
+      {/* <DropDown
         options={filterOptions}
         value={filter}
         onChange={setFilter}
         className="w-64"
-      />
+      /> */}
 
       {loading ? (
         <p className="text-center text-[#90A1B9]">Loading...</p>

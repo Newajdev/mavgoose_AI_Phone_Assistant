@@ -1,9 +1,8 @@
-
-
 export const adaptAppointment = (app) => {
-  const dateObj = new Date(app.scheduled_at);
-
   const statusMap = {
+    pending: "pending",
+    confirmed: "confirmed",
+    canceled: "canceled",
     PENDING: "pending",
     CONFIRMED: "confirmed",
     CANCELED: "canceled",
@@ -12,17 +11,18 @@ export const adaptAppointment = (app) => {
   return {
     id: app.id,
 
-    phone: app.customer_phone,
+    storeName: app.store_name,
 
-    service: app.service_name,
+    clientName: app.client_name,
+    phone: app.client_phone,
 
     status: statusMap[app.status] || "pending",
 
-    date: dateObj.toLocaleDateString(),
+    date: app.date,
 
-    time: dateObj.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    startTime: app.start_time,
+    endTime: app.end_time,
+
+    serialNo: app.serial_no,
   };
 };

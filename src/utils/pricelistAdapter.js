@@ -1,5 +1,3 @@
-/* ================= PRICE LIST META ADAPTERS ================= */
-
 // Category
 export const adaptCategory = (c) => ({
   id: c.id,

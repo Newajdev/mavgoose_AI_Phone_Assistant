@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
 import { removeAllTokens } from "../utils/cookies";
+import { getProfileApi } from "../libs/auth.api";
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -19,14 +20,38 @@ const AuthProvider = ({ children }) => {
     removeAllTokens();
   };
 
+  // 🔥 NEW: fetch profile & sync everywhere
+  const fetchProfile = async () => {
+    try {
+      const res = await getProfileApi();
+      setUser((prev) => {
+        const updated = {
+          ...prev,
+          ...res.data,
+        };
+        localStorage.setItem("auth", JSON.stringify(updated));
+        return updated;
+      });
+    } catch (err) {
+      console.log("Profile sync failed");
+    }
+  };
+
   const role = user?.role || user?.user?.role;
 
   return (
-    <AuthContext.Provider value={{ user, role, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        role,
+        login,
+        logout,
+        fetchProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
-
 
 export default AuthProvider;
