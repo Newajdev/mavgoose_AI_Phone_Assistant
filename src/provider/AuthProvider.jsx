@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AuthContext } from "./AuthContext";
 import { removeAllTokens } from "../utils/cookies";
 import { getProfileApi } from "../libs/auth.api";
@@ -9,6 +9,11 @@ const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
+  const [selectedStore, setSelectedStore] = useState(() => {
+    const savedStore = localStorage.getItem("selectedStore");
+    return savedStore ? JSON.parse(savedStore) : null;
+  });
+
   const login = (authData) => {
     setUser(authData);
     localStorage.setItem("auth", JSON.stringify(authData));
@@ -16,28 +21,31 @@ const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
+    setSelectedStore(null);
     localStorage.removeItem("auth");
+    localStorage.removeItem("selectedStore");
     removeAllTokens();
   };
 
-  // 🔥 NEW: fetch profile & sync everywhere
   const fetchProfile = async () => {
     try {
       const res = await getProfileApi();
       setUser((prev) => {
-        const updated = {
-          ...prev,
-          ...res.data,
-        };
+        const updated = { ...prev, ...res.data };
         localStorage.setItem("auth", JSON.stringify(updated));
         return updated;
       });
-    } catch (err) {
+    } catch {
       console.log("Profile sync failed");
     }
   };
 
   const role = user?.role || user?.user?.role;
+
+  const selectStore = (store) => {
+    setSelectedStore(store);
+    localStorage.setItem("selectedStore", JSON.stringify(store));
+  };
 
   return (
     <AuthContext.Provider
@@ -47,6 +55,8 @@ const AuthProvider = ({ children }) => {
         login,
         logout,
         fetchProfile,
+        selectedStore,
+        selectStore,
       }}
     >
       {children}

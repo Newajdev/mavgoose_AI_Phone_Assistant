@@ -45,6 +45,7 @@ const fromBusinessHoursArray = (arr = []) => {
   arr.forEach((b) => {
     const day = reverseDayMap[b.day];
     if (!day) return;
+
     base[day] = b.is_open
       ? { start: b.open_time, end: b.close_time }
       : { start: "---", end: "---" };
@@ -60,6 +61,8 @@ export default function AISettings() {
   const storeId = selectedStore?.id;
 
   const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+
   const [tone, setTone] = useState("friendly");
 
   const [greetings, setGreetings] = useState({
@@ -88,32 +91,39 @@ export default function AISettings() {
   /* ================= LOAD ================= */
 
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || notFound) return;
     loadConfig();
-  }, [storeId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeId, notFound]);
 
   const loadConfig = async () => {
     try {
       const res = await getAIBehaviorApi(storeId);
       const data = res.data;
 
-      setTone(data.tone);
+      setNotFound(false);
+
+      setTone(data.tone || "friendly");
 
       setGreetings({
         opening: data.greetings?.opening_hours_greeting || "",
         closed: data.greetings?.closed_hours_message || "",
       });
 
-      setBusinessHours(fromBusinessHoursArray(data.business_hours));
+      setBusinessHours(fromBusinessHoursArray(data.business_hours || []));
 
       setEscalation({
-        retryAttempts: data.retry_attempts_before_transfer,
-        fallbackResponse: data.fallback_response,
-        keywords: data.auto_transfer_keywords.map((k) => k.keyword),
+        retryAttempts: data.retry_attempts_before_transfer || 3,
+        fallbackResponse: data.fallback_response || "",
+        keywords:
+          data.auto_transfer_keywords?.map((k) => k.keyword) || [],
       });
     } catch (err) {
       if (err.response?.status === 404) {
-        await createAIBehaviorApi(storeId, buildPayload());
+        // AI behavior not created yet
+        setNotFound(true);
+      } else {
+        console.error("Failed to load AI behavior", err);
       }
     }
   };
@@ -128,8 +138,19 @@ export default function AISettings() {
 
     setLoading(true);
     try {
-      await updateAIBehaviorApi(storeId, buildPayload());
-      alert("AI Settings saved successfully ✅");
+      const payload = buildPayload();
+
+      if (notFound) {
+        await createAIBehaviorApi(storeId, payload);
+        setNotFound(false);
+        alert("AI Settings created successfully ✅");
+      } else {
+        await updateAIBehaviorApi(storeId, payload);
+        alert("AI Settings saved successfully ✅");
+      }
+    } catch (err) {
+      console.error(err.response?.data || err);
+      alert("Failed to save AI Settings ❌");
     } finally {
       setLoading(false);
     }
@@ -146,20 +167,22 @@ export default function AISettings() {
       closed_hours_message: greetings.closed,
     },
     business_hours: toBusinessHoursArray(businessHours),
-    auto_transfer_keywords: escalation.keywords.map((k) => ({ keyword: k })),
+    auto_transfer_keywords: escalation.keywords.map((k) => ({
+      keyword: k,
+    })),
   });
 
   /* ================= KEYWORDS ================= */
 
   const handleAddKeyword = () => {
     const kw = newKeyword.trim().toLowerCase();
-    if (kw && !escalation.keywords.includes(kw)) {
-      setEscalation({
-        ...escalation,
-        keywords: [...escalation.keywords, kw],
-      });
-      setNewKeyword("");
-    }
+    if (!kw || escalation.keywords.includes(kw)) return;
+
+    setEscalation({
+      ...escalation,
+      keywords: [...escalation.keywords, kw],
+    });
+    setNewKeyword("");
   };
 
   const handleRemoveKeyword = (kw) => {
@@ -212,7 +235,9 @@ export default function AISettings() {
               key={t}
               onClick={() => setTone(t)}
               className={`block w-full mb-2 p-3 rounded-xl ${
-                tone === t ? "bg-blue-600 text-white" : "bg-slate-800 text-gray-400"
+                tone === t
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-800 text-gray-400"
               }`}
             >
               {t}
@@ -319,7 +344,7 @@ export default function AISettings() {
         disabled={loading}
         className="w-full bg-green-500 text-white py-3 rounded-xl font-bold"
       >
-        {loading ? "Saving..." : "Save AI Settings"}
+        {loading ? "Saving..." : notFound ? "Create AI Settings" : "Save AI Settings"}
       </button>
     </div>
   );

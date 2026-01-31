@@ -1,25 +1,22 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import NavBtn from "./NavBtn";
 import { AuthContext } from "../provider/AuthContext";
-import { Link } from "react-router-dom";
+import { getStoresApi } from "../libs/stores.api";
 
-/* ✅ STORES LIST */
-const stores = [
-  { id: 1, name: "Downtown Manhattan", address: "123 Broadway, NY" },
-  { id: 2, name: "Brooklyn Heights", address: "456 Atlantic Ave, NY" },
-  { id: 3, name: "Queens Center", address: "789 Queens Blvd, NY" },
-  { id: 4, name: "Jersey City", address: "321 Newark Ave, NJ" },
-  { id: 5, name: "Boston Downtown", address: "555 Boylston St, MA" },
-];
-
-export default function Navbar({ onClose }) {
+export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout, selectedStore, selectStore } = useContext(AuthContext);
+  const { user, logout, selectedStore, selectStore } =
+    useContext(AuthContext);
 
   const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
+  const [stores, setStores] = useState([]);
+  const [loadingStores, setLoadingStores] = useState(false);
+
+  // ✅ STRICT MODE GUARD
+  const hasFetchedStores = useRef(false);
 
   /* 🔹 ROLE NORMALIZER */
   const getUserRole = () => {
@@ -34,78 +31,39 @@ export default function Navbar({ onClose }) {
 
   const userRole = getUserRole();
 
-  /* 🔹 ALL LINKS */
+  /* 🔹 FETCH STORES (SUPER ADMIN ONLY) */
+  useEffect(() => {
+    if (userRole === "SuperAdmin" && !hasFetchedStores.current) {
+      hasFetchedStores.current = true;
+      fetchStores();
+    }
+  }, [userRole]);
+
+  const fetchStores = async () => {
+    try {
+      setLoadingStores(true);
+      const res = await getStoresApi();
+      if (Array.isArray(res.data)) {
+        setStores(res.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch stores", error);
+    } finally {
+      setLoadingStores(false);
+    }
+  };
+
+  /* 🔹 NAV LINKS */
   const links = [
-    {
-      title: "Dashboard Overview",
-      icon: "fluent:home-12-regular",
-      activeI: "fluent:home-24-filled",
-      path: "/dashboard",
-      roles: ["SuperAdmin", "StoreManager", "Staff"],
-    },
-    {
-      title: "Call Logs",
-      icon: "proicons:call",
-      activeI: "fluent:call-12-filled",
-      path: "/call-logs",
-      roles: ["SuperAdmin", "StoreManager", "Staff"],
-    },
-    {
-      title: "Call Transfer",
-      icon: "mingcute:transfer-3-line",
-      activeI: "streamline-ultimate:data-transfer-circle-bold",
-      path: "/call-transfer",
-      roles: ["SuperAdmin", "StoreManager", "Staff"],
-    },
-    {
-      title: "Appointments",
-      icon: "hugeicons:appointment-01",
-      activeI: "mingcute:schedule-fill",
-      path: "/appointment",
-      roles: ["SuperAdmin", "StoreManager", "Staff"],
-    },
-    {
-      title: "Pricing Management",
-      icon: "ph:currency-dollar-bold",
-      activeI: "heroicons:currency-dollar-16-solid",
-      path: "/pricing-management",
-      roles: ["SuperAdmin","StoreManager", "Staff"],
-    },
-    {
-      title: "AI Behavior Settings",
-      icon: "ant-design:robot-outlined",
-      activeI: "ant-design:robot-filled",
-      path: "/ai-behavior-settings",
-      roles: ["SuperAdmin", "StoreManager"],
-    },
-    {
-      title: "API Settings",
-      icon: "solar:phone-calling-outline",
-      activeI: "solar:phone-calling-bold",
-      path: "/api-settings",
-      roles: ["SuperAdmin", "StoreManager"],
-    },
-    {
-      title: "User Management",
-      icon: "rivet-icons:user-group",
-      activeI: "rivet-icons:user-group-solid",
-      path: "/user-management",
-      roles: ["SuperAdmin"],
-    },
-    // {
-    //   title: "Pricing List",
-    //   icon: "ph:currency-dollar-bold",
-    //   activeI: "heroicons:currency-dollar-16-solid",
-    //   path: "/pricing-list",
-    //   roles: ["StoreManager"],
-    // },
-    {
-      title: "Settings",
-      icon: "qlementine-icons:settings-16",
-      activeI: "clarity:settings-solid",
-      path: "/setting",
-      roles: ["SuperAdmin","StoreManager", "Staff"],
-    },
+    { title: "Dashboard Overview", icon: "fluent:home-12-regular", activeI: "fluent:home-24-filled", path: "/dashboard", roles: ["SuperAdmin", "StoreManager", "Staff"] },
+    { title: "Call Logs", icon: "proicons:call", activeI: "fluent:call-12-filled", path: "/call-logs", roles: ["SuperAdmin", "StoreManager", "Staff"] },
+    { title: "Call Transfer", icon: "mingcute:transfer-3-line", activeI: "streamline-ultimate:data-transfer-circle-bold", path: "/call-transfer", roles: ["SuperAdmin", "StoreManager", "Staff"] },
+    { title: "Appointments", icon: "hugeicons:appointment-01", activeI: "mingcute:schedule-fill", path: "/appointment", roles: ["SuperAdmin", "StoreManager", "Staff"] },
+    { title: "Pricing Management", icon: "ph:currency-dollar-bold", activeI: "heroicons:currency-dollar-16-solid", path: "/pricing-management", roles: ["SuperAdmin", "StoreManager", "Staff"] },
+    { title: "AI Behavior Settings", icon: "ant-design:robot-outlined", activeI: "ant-design:robot-filled", path: "/ai-behavior-settings", roles: ["SuperAdmin", "StoreManager"] },
+    { title: "API Settings", icon: "solar:phone-calling-outline", activeI: "solar:phone-calling-bold", path: "/api-settings", roles: ["SuperAdmin", "StoreManager"] },
+    { title: "User Management", icon: "rivet-icons:user-group", activeI: "rivet-icons:user-group-solid", path: "/user-management", roles: ["SuperAdmin"] },
+    { title: "Settings", icon: "qlementine-icons:settings-16", activeI: "clarity:settings-solid", path: "/setting", roles: ["SuperAdmin", "StoreManager", "Staff"] },
   ];
 
   const navLinks = links.filter(
@@ -118,19 +76,15 @@ export default function Navbar({ onClose }) {
   };
 
   return (
-    <div className="w-full p-5 flex flex-col justify-between h-screen relative">
+    <div className="w-full p-5 flex flex-col h-screen relative">
       {/* LOGO */}
       <div className="flex items-center justify-center mb-4">
         <Link to="/dashboard">
-          <img 
-            src="/logo.png" 
-            alt="logo" 
-            className="cursor-pointer" 
-          />
+          <img src="/logo.png" alt="logo" />
         </Link>
       </div>
 
-      {/* ✅ STORE SELECTOR (SUPER ADMIN ONLY) */}
+      {/* STORE SELECTOR */}
       {userRole === "SuperAdmin" && (
         <>
           <div
@@ -143,33 +97,31 @@ export default function Navbar({ onClose }) {
             <Icon icon="mdi:chevron-down" />
           </div>
 
-          {/* STORE MODAL */}
           {isStoreModalOpen && (
-            <div className="absolute top-28 left-5 right-5 bg-[#0F172A] border border-[#2B7FFF33] rounded-xl p-3 z-50">
-              {stores.map((store) => (
-                <div
-                  key={store.id}
-                  onClick={() => {
-                    selectStore(store);
-                    setIsStoreModalOpen(false);
-                  }}
-                  className="p-3 rounded-lg hover:bg-[#2B7FFF20] cursor-pointer flex justify-between"
-                >
-                  <div>
-                    <p className="text-white text-sm">{store.name}</p>
-                    <p className="text-xs text-gray-400">{store.address}</p>
-                  </div>
-                  <span
-                    className={`text-xs ${
-                      store.status === "online"
-                        ? "text-green-400"
-                        : "text-red-400"
-                    }`}
+            <div className="absolute top-28 left-5 right-5 
+                bg-[#0F172A] border border-[#2B7FFF33] 
+                rounded-xl p-3 z-[9999]
+                max-h-[400px] overflow-y-auto">
+              {loadingStores && (
+                <p className="text-center text-sm text-gray-400">
+                  Loading stores...
+                </p>
+              )}
+
+              {!loadingStores &&
+                stores.map((store) => (
+                  <div
+                    key={store.id}
+                    onClick={() => {
+                      selectStore(store);
+                      setIsStoreModalOpen(false);
+                    }}
+                    className="p-3 rounded-lg hover:bg-[#2B7FFF20] cursor-pointer"
                   >
-                    {store.status}
-                  </span>
-                </div>
-              ))}
+                    <p className="text-white text-sm">{store.name}</p>
+                    <p className="text-xs text-gray-400">{store.location}</p>
+                  </div>
+                ))}
             </div>
           )}
         </>
@@ -191,10 +143,9 @@ export default function Navbar({ onClose }) {
         ))}
       </ul>
 
-      {/* LOGOUT */}
       <button
         onClick={handleLogout}
-        className="bg-red-900 text-white py-3 rounded-xl cursor-pointer"
+        className="bg-red-900 text-white py-3 rounded-xl"
       >
         Logout
       </button>

@@ -1,5 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
+import toast from "react-hot-toast";
+import {
+  getApiConfig,
+  updateApiConfig,
+} from "../libs/apiConfig.api";
+
+const STORE_ID = 3; // later auth/context theke dynamic hobe
 
 export default function APISettings() {
   const [apiKey, setApiKey] = useState("vapi_sk_••••••••••••••••••••••••••");
@@ -24,6 +31,7 @@ export default function APISettings() {
     noiseSuppression: false,
   });
 
+  /* ✅ ERROR LOGS */
   const errorLogs = [
     {
       type: "warning",
@@ -42,25 +50,109 @@ export default function APISettings() {
     },
   ];
 
-  const handleSaveKey = () => {
-    console.log("Saving API key");
+  /* ================= LOAD CONFIG ================= */
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const res = await getApiConfig(STORE_ID);
+        const { ai_config, stt_config, api_key } = res.data;
+
+        if (api_key?.key) setApiKey(api_key.key);
+
+        if (ai_config) {
+          setModelConfig({
+            model: ai_config.model ?? modelConfig.model,
+            temperature: ai_config.temperature ?? modelConfig.temperature,
+            maxTokens: ai_config.max_tokens ?? modelConfig.maxTokens,
+          });
+
+          setPerformance({
+            timeout: ai_config.timeout ?? performance.timeout,
+            retryAttempts:
+              ai_config.retry_attempts ?? performance.retryAttempts,
+            voiceProvider:
+              ai_config.voice_provider ?? performance.voiceProvider,
+          });
+        }
+
+        if (stt_config) {
+          setSTTSettings({
+            provider: stt_config.provider ?? sttSettings.provider,
+            language: stt_config.language ?? sttSettings.language,
+            punctuation:
+              stt_config.punctuation ?? sttSettings.punctuation,
+            noiseSuppression:
+              stt_config.noise_suppression ??
+              sttSettings.noiseSuppression,
+          });
+        }
+      } catch {
+        toast.error("Failed to load API config");
+      }
+    };
+
+    loadConfig();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ================= HANDLERS ================= */
+
+  const handleSaveKey = async () => {
+    try {
+      await updateApiConfig(STORE_ID, {
+        api_key: { key: apiKey },
+      });
+      toast.success("API key saved ✅");
+    } catch {
+      toast.error("Failed to save API key ❌");
+    }
   };
 
+  /* ✅ FIXED: handleTestConnection EXISTS */
   const handleTestConnection = () => {
-    console.log("Testing connection");
+    toast("Test connection endpoint backend এ এখনো implement করা হয়নি");
   };
 
-  const handleSaveSettings = () => {
-    console.log("Saving all settings");
+  const handleSaveSettings = async () => {
+    try {
+      const payload = {
+        api_key: {
+          key: apiKey,
+        },
+        ai_config: {
+          model: modelConfig.model,
+          temperature: modelConfig.temperature,
+          max_tokens: modelConfig.maxTokens,
+          timeout: performance.timeout,
+          retry_attempts: performance.retryAttempts,
+          voice_provider: performance.voiceProvider,
+        },
+        stt_config: {
+          provider: sttSettings.provider,
+          language: sttSettings.language,
+          punctuation: sttSettings.punctuation,
+          noise_suppression: sttSettings.noiseSuppression,
+        },
+      };
+
+      await updateApiConfig(STORE_ID, payload);
+      toast.success("Settings saved successfully ✅");
+    } catch (err) {
+      console.error(err.response?.data);
+      toast.error("Failed to save settings ❌");
+    }
   };
 
+  /* ================= UI ================= */
   return (
     <div className="p-6 space-y-8">
       {/* API Key Management */}
       <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-6">
           <Icon icon="mdi:key-variant" className="text-[#2B7FFF]" width={24} />
-          <h2 className="text-xl font-bold text-white">API Key Management</h2>
+          <h2 className="text-xl font-bold text-white">
+            API Key Management
+          </h2>
         </div>
 
         <div className="space-y-4">
@@ -73,31 +165,32 @@ export default function APISettings() {
                 type={showKey ? "text" : "password"}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 pr-12 text-white text-sm focus:border-[#2B7FFF] focus:outline-none"
+                className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 pr-12 text-white text-sm"
               />
               <button
                 onClick={() => setShowKey(!showKey)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#90A1B9] hover:text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#90A1B9]"
               >
-                <Icon icon={showKey ? "mdi:eye-off" : "mdi:eye"} width={20} />
+                <Icon
+                  icon={showKey ? "mdi:eye-off" : "mdi:eye"}
+                  width={20}
+                />
               </button>
             </div>
-            <p className="text-[#90A1B9] text-xs mt-2">
-              Keep this key secure, never share it publicly
-            </p>
           </div>
 
           <div className="flex gap-3">
             <button
               onClick={handleSaveKey}
-              className="bg-[#05DF72] hover:bg-[#05DF72CC] text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center gap-2"
+              className="bg-[#05DF72] text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2"
             >
               <Icon icon="mdi:content-save" width={18} />
               Save Key
             </button>
+
             <button
               onClick={handleTestConnection}
-              className="bg-[#1D293D] border border-[#2B7FFF33] text-white px-6 py-3 rounded-xl hover:bg-[#2B7FFF15] transition-all"
+              className="bg-[#1D293D] border border-[#2B7FFF33] text-white px-6 py-3 rounded-xl"
             >
               Test Connection
             </button>
@@ -105,258 +198,7 @@ export default function APISettings() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Model Configuration */}
-        <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Icon icon="mdi:brain" className="text-[#2B7FFF]" width={24} />
-            <h2 className="text-xl font-bold text-white">
-              Model Configuration
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-            <div>
-              <label className="text-[#90A1B9] text-sm font-medium mb-2 block">
-                AI Model Version
-              </label>
-              <select
-                value={modelConfig.model}
-                onChange={(e) =>
-                  setModelConfig({ ...modelConfig, model: e.target.value })
-                }
-                className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 text-white focus:border-[#2B7FFF] focus:outline-none"
-              >
-                <option>GPT-40 (Recommend)</option>
-                <option>GPT-3.5 Turbo</option>
-                <option>GPT-4</option>
-              </select>
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-[#90A1B9] text-sm font-medium">
-                  Temperature: {modelConfig.temperature}
-                </label>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={modelConfig.temperature}
-                onChange={(e) =>
-                  setModelConfig({
-                    ...modelConfig,
-                    temperature: parseFloat(e.target.value),
-                  })
-                }
-                style={{ "--value": `${(modelConfig.temperature / 1) * 100}%` }}
-                className="w-full slider"
-              />
-              <div className="flex justify-between text-xs text-[#90A1B9] mt-1">
-                <span>More Precise</span>
-                <span>More Creative</span>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-[#90A1B9] text-sm font-medium">
-                  Max Tokens: {modelConfig.maxTokens}
-                </label>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="500"
-                step="10"
-                value={modelConfig.maxTokens}
-                onChange={(e) =>
-                  setModelConfig({
-                    ...modelConfig,
-                    maxTokens: parseInt(e.target.value),
-                  })
-                }
-                style={{ "--value": `${(modelConfig.maxTokens / 500) * 100}%` }}
-                className="w-full slider"
-              />
-              <div className="flex justify-between text-xs text-[#90A1B9] mt-1">
-                <span>Shorter Responses</span>
-                <span>Longer Responses</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Performance Settings */}
-        <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Icon
-              icon="mdi:lightning-bolt"
-              className="text-[#FF8904]"
-              width={24}
-            />
-            <h2 className="text-xl font-bold text-white">
-              Performance Settings
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-            <div>
-              <label className="text-[#90A1B9] text-sm font-medium mb-2 block">
-                Response Timeout (seconds)
-              </label>
-              <input
-                type="number"
-                value={performance.timeout}
-                onChange={(e) =>
-                  setPerformance({
-                    ...performance,
-                    timeout: parseInt(e.target.value),
-                  })
-                }
-                className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 text-white focus:border-[#2B7FFF] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-[#90A1B9] text-sm font-medium mb-2 block">
-                Retry Attempts on Failure
-              </label>
-              <select
-                value={performance.retryAttempts}
-                onChange={(e) =>
-                  setPerformance({
-                    ...performance,
-                    retryAttempts: e.target.value,
-                  })
-                }
-                className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 text-white focus:border-[#2B7FFF] focus:outline-none"
-              >
-                <option>1 attempt</option>
-                <option>2 attempts</option>
-                <option>3 attempts</option>
-                <option>4 attempts</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="text-[#90A1B9] text-sm font-medium mb-2 block">
-                Voice Provider
-              </label>
-              <select
-                value={performance.voiceProvider}
-                onChange={(e) =>
-                  setPerformance({
-                    ...performance,
-                    voiceProvider: e.target.value,
-                  })
-                }
-                className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 text-white focus:border-[#2B7FFF] focus:outline-none"
-              >
-                <option>Eleven Labs</option>
-                <option>Google TTS</option>
-                <option>Amazon Polly</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Speech-to-Text Settings */}
-      <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <Icon icon="mdi:microphone" className="text-[#05DF72]" width={24} />
-          <h2 className="text-xl font-bold text-white">
-            Speech-to-Text Settings
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <label className="text-[#90A1B9] text-sm font-medium mb-2 block">
-              STT Provider
-            </label>
-            <select
-              value={sttSettings.provider}
-              onChange={(e) =>
-                setSTTSettings({ ...sttSettings, provider: e.target.value })
-              }
-              className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 text-white focus:border-[#2B7FFF] focus:outline-none"
-            >
-              <option>Google Speech-to-Text</option>
-              <option>Azure Speech</option>
-              <option>AWS Transcribe</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="text-[#90A1B9] text-sm font-medium mb-2 block">
-              Language Model
-            </label>
-            <select
-              value={sttSettings.language}
-              onChange={(e) =>
-                setSTTSettings({ ...sttSettings, language: e.target.value })
-              }
-              className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 text-white focus:border-[#2B7FFF] focus:outline-none"
-            >
-              <option>English</option>
-              <option>Spanish</option>
-              <option>French</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <label className="flex items-center gap-3 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={sttSettings.punctuation}
-              onChange={(e) =>
-                setSTTSettings({
-                  ...sttSettings,
-                  punctuation: e.target.checked,
-                })
-              }
-              className="size-5 bg-[#0F172B60] border-2 border-[#2B7FFF33] rounded checked:bg-[#2B7FFF] checked:border-[#2B7FFF] focus:outline-none cursor-pointer"
-            />
-            <div>
-              <p className="text-white font-medium">
-                Enable Punctuation Auto-correction
-              </p>
-              <p className="text-[#90A1B9] text-xs">
-                Improves transcription accuracy
-              </p>
-            </div>
-          </label>
-
-          <label className="flex items-center gap-3 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={sttSettings.noiseSuppression}
-              onChange={(e) =>
-                setSTTSettings({
-                  ...sttSettings,
-                  noiseSuppression: e.target.checked,
-                })
-              }
-              className="size-5 bg-[#0F172B60] border-2 border-[#2B7FFF33] rounded checked:bg-[#2B7FFF] checked:border-[#2B7FFF] focus:outline-none cursor-pointer"
-            />
-            <div>
-              <p className="text-white font-medium">
-                Background Noise Suppression
-              </p>
-              <p className="text-[#90A1B9] text-xs">
-                Filter out background noise during calls
-              </p>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      {/* Error Logs */}
+      {/* ERROR LOGS */}
       <div className="bg-[#1D293D80] border-2 border-[#2B7FFF33] rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-6">
           <Icon
@@ -364,7 +206,9 @@ export default function APISettings() {
             className="text-[#FF2056]"
             width={24}
           />
-          <h2 className="text-xl font-bold text-white">Error Logs</h2>
+          <h2 className="text-xl font-bold text-white">
+            Error Logs
+          </h2>
         </div>
 
         <div className="space-y-3">
@@ -374,25 +218,34 @@ export default function APISettings() {
               className="flex items-start gap-3 p-3 bg-[#0F172B60] border border-[#2B7FFF15] rounded-xl"
             >
               <Icon
-                icon={log.type === "warning" ? "mdi:alert" : "mdi:close-circle"}
+                icon={
+                  log.type === "warning"
+                    ? "mdi:alert"
+                    : "mdi:close-circle"
+                }
                 className={
-                  log.type === "warning" ? "text-[#FF8904]" : "text-[#FF2056]"
+                  log.type === "warning"
+                    ? "text-[#FF8904]"
+                    : "text-[#FF2056]"
                 }
                 width={20}
               />
               <div className="flex-1">
-                <p className="text-white text-sm">{log.message}</p>
-                <p className="text-[#90A1B9] text-xs mt-1">{log.time}</p>
+                <p className="text-white text-sm">
+                  {log.message}
+                </p>
+                <p className="text-[#90A1B9] text-xs mt-1">
+                  {log.time}
+                </p>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Save Settings Button */}
       <button
         onClick={handleSaveSettings}
-        className="w-full bg-[#05DF72] hover:bg-[#05DF72CC] text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
+        className="w-full bg-[#05DF72] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2"
       >
         <Icon icon="mdi:content-save" width={20} />
         Save Settings

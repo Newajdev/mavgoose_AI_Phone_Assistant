@@ -15,12 +15,15 @@ export default function CallLogs() {
   const fetchCalls = async (params = {}) => {
     try {
       const res = await getCallLogsApi(params);
+      console.log("RAW API DATA:", res.data);
+
       const adaptedCalls = Array.isArray(res.data)
         ? res.data.map(adaptCall)
         : [];
 
+        console.log("ADAPTED CALLS:", adaptedCalls);
+
       setCalls(adaptedCalls);
-      console.log(adaptedCalls);
 
       // Only auto-select on first load
       if (firstLoadRef.current) {
@@ -33,7 +36,7 @@ export default function CallLogs() {
   };
 
   useEffect(() => {
-    fetchCalls({ date: "today" });
+    fetchCalls();
   }, []);
 
   return (
