@@ -34,22 +34,24 @@ const toBusinessHoursArray = (businessHours) =>
 
 const fromBusinessHoursArray = (arr = []) => {
   const base = {
-    monday: { start: "---", end: "---" },
-    tuesday: { start: "---", end: "---" },
-    wednesday: { start: "---", end: "---" },
-    thursday: { start: "---", end: "---" },
-    friday: { start: "---", end: "---" },
-    saturday: { start: "---", end: "---" },
-    sunday: { start: "---", end: "---" },
+    monday: { is_open: false, start: "---", end: "---" },
+    tuesday: { is_open: false, start: "---", end: "---" },
+    wednesday: { is_open: false, start: "---", end: "---" },
+    thursday: { is_open: false, start: "---", end: "---" },
+    friday: { is_open: false, start: "---", end: "---" },
+    saturday: { is_open: false, start: "---", end: "---" },
+    sunday: { is_open: false, start: "---", end: "---" },
   };
 
   arr.forEach((b) => {
     const day = reverseDayMap[b.day];
     if (!day) return;
 
-    base[day] = b.is_open
-      ? { start: b.open_time, end: b.close_time }
-      : { start: "---", end: "---" };
+    base[day] = {
+      is_open: b.is_open,
+      start: b.is_open ? b.open_time : "---",
+      end: b.is_open ? b.close_time : "---",
+    };
   });
 
   return base;
@@ -64,7 +66,7 @@ export default function AISettings() {
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
 
-  const [tone, setTone] = useState("friendly");
+  const [tone, setTone] = useState(null);
 
   const [greetings, setGreetings] = useState({
     opening: "",
@@ -72,14 +74,20 @@ export default function AISettings() {
   });
 
   const [businessHours, setBusinessHours] = useState({
-    monday: { start: "---", end: "---" },
-    tuesday: { start: "---", end: "---" },
-    wednesday: { start: "---", end: "---" },
-    thursday: { start: "---", end: "---" },
-    friday: { start: "---", end: "---" },
-    saturday: { start: "---", end: "---" },
-    sunday: { start: "---", end: "---" },
+    monday: { is_open: false, start: "---", end: "---" },
+    tuesday: { is_open: false, start: "---", end: "---" },
+    wednesday: { is_open: false, start: "---", end: "---" },
+    thursday: { is_open: false, start: "---", end: "---" },
+    friday: { is_open: false, start: "---", end: "---" },
+    saturday: { is_open: false, start: "---", end: "---" },
+    sunday: { is_open: false, start: "---", end: "---" },
   });
+
+  const toneOptions = [
+    { label: "Friendly & Warm", value: "friendly" },
+    { label: "Professional", value: "professional" },
+    { label: "Sales-Oriented", value: "sales" },
+  ];
 
   const [escalation, setEscalation] = useState({
     retryAttempts: 3,
@@ -98,7 +106,6 @@ export default function AISettings() {
 
     loadConfig(!firstLoadRef.current);
     firstLoadRef.current = false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storeId]);
 
   const loadConfig = async (showToast = false) => {
@@ -110,24 +117,31 @@ export default function AISettings() {
 
       setNotFound(false);
 
-      setTone(data.tone || "friendly");
+      setTone(data.tone || null);
 
       setGreetings({
         opening: data.greetings?.opening_hours_greeting || "",
         closed: data.greetings?.closed_hours_message || "",
       });
 
-      setBusinessHours(
-        fromBusinessHoursArray(data.business_hours || [])
-      );
+      // business hours
+      const bh = {};
+      (data.business_hours || []).forEach((b) => {
+        const day = reverseDayMap[b.day];
+        bh[day] = {
+          is_open: b.is_open,
+          start: b.open_time || "---",
+          end: b.close_time || "---",
+        };
+      });
+      setBusinessHours((prev) => ({ ...prev, ...bh }));
 
       setEscalation({
         retryAttempts:
           data.retry_attempts_before_transfer || 3,
         fallbackResponse: data.fallback_response || "",
         keywords:
-          data.auto_transfer_keywords?.map((k) => k.keyword) ||
-          [],
+          data.auto_transfer_keywords?.map((k) => k.keyword) || [],
       });
 
       if (showToast) {
@@ -217,9 +231,7 @@ export default function AISettings() {
   if (!storeId) {
     return (
       <div className="p-10 text-center text-white">
-        <h2 className="text-xl font-bold mb-2">
-          No store selected
-        </h2>
+        <h2 className="text-xl font-bold mb-2">No store selected</h2>
         <p>Please select a store to configure AI behavior.</p>
       </div>
     );
@@ -227,153 +239,200 @@ export default function AISettings() {
 
   return (
     <div className="p-6 space-y-8">
-      {/* Greetings */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-[#1D293D80] p-6 rounded-2xl">
-          <h2 className="text-white font-bold mb-4">
-            Greeting Scripts
-          </h2>
-          <textarea
-            value={greetings.opening}
-            onChange={(e) =>
-              setGreetings({
-                ...greetings,
-                opening: e.target.value,
-              })
-            }
-            className="w-full mb-3 p-4 rounded-xl"
-            placeholder="Opening greeting"
-          />
-          <textarea
-            value={greetings.closed}
-            onChange={(e) =>
-              setGreetings({
-                ...greetings,
-                closed: e.target.value,
-              })
-            }
-            className="w-full p-4 rounded-xl"
-            placeholder="Closed message"
-          />
+      <div className="grid lg:grid-cols-3 gap-6 p-8">
+        {/* Greeting Scripts - 2 columns wide */}
+        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg lg:col-span-2 border border-blue-500">
+          <h2 className="text-white text-xl font-bold mb-4">Greeting Scripts</h2>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-gray-300 font-semibold mb-1 block">
+                Opening Hours Greeting
+              </label>
+              <textarea
+                value={greetings.opening}
+                onChange={(e) =>
+                  setGreetings({ ...greetings, opening: e.target.value })
+                }
+                placeholder="Hi there! Welcome to our store."
+                className="w-full p-4 rounded-xl bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500 mt-2"
+              />
+            </div>
+
+            <div>
+              <label className="text-gray-300 font-semibold mb-1 block">
+                Closed Hours Message
+              </label>
+              <textarea
+                value={greetings.closed}
+                onChange={(e) =>
+                  setGreetings({ ...greetings, closed: e.target.value })
+                }
+                placeholder="Sorry, we're closed. Please visit us during business hours."
+                className="w-full p-4 rounded-xl bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Tone */}
-        <div className="bg-[#1D293D80] p-6 rounded-2xl">
+        {/* Tone - 1 column wide */}
+        <div className="bg-[#1D293D80] p-6 rounded-2xl lg:col-span-1 border border-blue-500">
           <h2 className="text-white font-bold mb-4">Tone</h2>
-          {["Friendly", "Professional", "Sales"].map((t) => (
+          {toneOptions.map((t) => (
             <button
-              key={t}
-              onClick={() => setTone(t)}
-              className={`block w-full mb-2 p-3 rounded-xl cursor-pointer hover:bg-slate-700 ${
-                tone === t
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-800 text-gray-400"
-              }`}
+              key={t.value}
+              onClick={() => setTone(t.value)}
+              className={`block w-full mb-2 p-3 rounded-xl cursor-pointer hover:bg-slate-700 ${tone === t.value
+                ? "bg-blue-600 text-white"
+                : "bg-slate-800 text-gray-400"
+                }`}
             >
-              {t}
+              {t.label}
             </button>
           ))}
         </div>
       </div>
 
+
       {/* Business Hours */}
-      <div className="bg-[#1D293D80] p-6 rounded-2xl">
-        <h2 className="text-white font-bold mb-4">
-          Business Hours
-        </h2>
+
+      <div className="bg-[#1F2937] p-6 rounded-2xl shadow-lg border border-blue-500 ">
+        <h2 className="text-white text-xl font-bold mb-4">Business Hours</h2>
         <div className="grid md:grid-cols-3 gap-4">
           {Object.entries(businessHours).map(([day, times]) => (
-            <div key={day}>
-              <p className="text-white capitalize mb-1">
-                {day}
-              </p>
-              <div className="flex gap-2">
-                <TimeSelector
-                  value={times.start}
-                  onChange={(v) =>
-                    setBusinessHours({
-                      ...businessHours,
-                      [day]: { ...times, start: v },
-                    })
-                  }
-                />
-                <TimeSelector
-                  value={times.end}
-                  onChange={(v) =>
-                    setBusinessHours({
-                      ...businessHours,
-                      [day]: { ...times, end: v },
-                    })
-                  }
-                />
+            <div
+              key={day}
+              className="p-4 rounded-2xl shadow-md transition-colors bg-gray-700"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-white font-semibold capitalize">{day}</p>
+                <label className="flex items-center gap-2 text-white cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={times.is_open}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setBusinessHours({
+                        ...businessHours,
+                        [day]: {
+                          ...times,
+                          is_open: checked,
+                          start: checked ? times.start : "---",
+                          end: checked ? times.end : "---",
+                        },
+                      });
+                    }}
+                    className="w-5 h-5 accent-blue-500"
+                  />
+                  Open
+                </label>
               </div>
+
+              {times.is_open ? (
+                <div className="flex gap-2 mt-2">
+                  <TimeSelector
+                    value={times.start}
+                    onChange={(v) =>
+                      setBusinessHours({
+                        ...businessHours,
+                        [day]: { ...times, start: v },
+                      })
+                    }
+                  />
+                  <TimeSelector
+                    value={times.end}
+                    onChange={(v) =>
+                      setBusinessHours({
+                        ...businessHours,
+                        [day]: { ...times, end: v },
+                      })
+                    }
+                  />
+                </div>
+              ) : (
+                <p className=" mt-2 text-base font-semibold text-red-400">Closed</p>
+              )}
             </div>
           ))}
         </div>
       </div>
 
       {/* Escalation */}
-      <div className="bg-[#1D293D80] p-6 rounded-2xl">
-        <h2 className="text-white font-bold mb-4">
-          Escalation Rules
-        </h2>
+      <div className="bg-[#1D293D80] p-6 rounded-2xl border border-blue-500 shadow-lg space-y-4">
+        <h2 className="text-white font-bold text-xl mb-2">Escalation Rules</h2>
 
-        <select
-          value={escalation.retryAttempts}
-          onChange={(e) =>
-            setEscalation({
-              ...escalation,
-              retryAttempts: Number(e.target.value),
-            })
-          }
-          className="mb-4 p-2 rounded-xl bg-gray-700 text-white cursor-pointer hover:bg-gray-600"
-        >
-          {[1, 2, 3, 4, 5].map((n) => (
-            <option key={n} value={n}>
-              {n} attempts
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Retry Attempts */}
+          <div className="flex-1 flex flex-col">
+            <label className="text-gray-300 font-semibold mb-1">
+              Retry Attempts Before Transfer
+            </label>
+            <select
+              value={escalation.retryAttempts}
+              onChange={(e) =>
+                setEscalation({
+                  ...escalation,
+                  retryAttempts: Number(e.target.value),
+                })
+              }
+              className="p-3 rounded-xl bg-gray-800 text-white border border-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none cursor-pointer"
+            >
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {n} attempts
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <textarea
-          value={escalation.fallbackResponse}
-          onChange={(e) =>
-            setEscalation({
-              ...escalation,
-              fallbackResponse: e.target.value,
-            })
-          }
-          className="w-full mb-4 p-4 rounded-xl"
-          placeholder="Fallback response"
-        />
-
-        <div className="flex gap-2 mb-3">
-          <input
-            value={newKeyword}
-            onChange={(e) => setNewKeyword(e.target.value)}
-            className="flex-1 p-3 rounded-xl"
-            placeholder="Add keyword"
-          />
-          <button
-            onClick={handleAddKeyword}
-            className="bg-blue-600 text-white px-4 rounded-xl cursor-pointer hover:bg-blue-700"
-          >
-            Add
-          </button>
+          {/* Fallback Response */}
+          <div className="flex-1 flex flex-col">
+            <label className="text-gray-300 font-semibold mb-1">
+              Fallback Response
+            </label>
+            <textarea
+              value={escalation.fallbackResponse}
+              onChange={(e) =>
+                setEscalation({ ...escalation, fallbackResponse: e.target.value })
+              }
+              placeholder="Fallback response"
+              className="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none"
+            />
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {escalation.keywords.map((k) => (
-            <span
-              key={k}
-              onClick={() => handleRemoveKeyword(k)}
-              className="bg-red-500 text-white px-3 py-1 rounded-lg cursor-pointer"
+        {/* Keywords */}
+        <div className="flex flex-col gap-2">
+          <label className="text-gray-300 font-semibold">Auto Transfer Keywords</label>
+          <div className="flex gap-2">
+            <input
+              value={newKeyword}
+              onChange={(e) => setNewKeyword(e.target.value)}
+              placeholder="Add keyword"
+              className="flex-1 p-3 rounded-xl border border-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-[#1D293D80]/50 text-white"
+            />
+            <button
+              onClick={handleAddKeyword}
+              className="bg-blue-600/25 border border-blue-500 text-white px-4 rounded-xl cursor-pointer hover:bg-blue-700"
             >
-              {k} ✕
-            </span>
-          ))}
+              Add
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-2">
+            {escalation.keywords.map((k) => (
+              <span
+                key={k}
+                onClick={() => handleRemoveKeyword(k)}
+                className="bg-[#FB2C36]/20 text-[#FF6467] px-3 py-1 rounded-lg cursor-pointer border border-[#FB2C36]/40"
+              >
+                {k} ✕
+              </span>
+            ))}
+          </div>
         </div>
       </div>
+
 
       <button
         onClick={handleSaveSettings}
@@ -383,9 +442,10 @@ export default function AISettings() {
         {loading
           ? "Saving..."
           : notFound
-          ? "Create AI Settings"
-          : "Save AI Settings"}
+            ? "Create AI Settings"
+            : "Save AI Settings"}
       </button>
-    </div>
+    </div >
   );
 }
+
