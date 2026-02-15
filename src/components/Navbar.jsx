@@ -4,6 +4,7 @@ import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import NavBtn from "./NavBtn";
 import { AuthContext } from "../provider/AuthContext";
 import { getStoresApi } from "../libs/stores.api";
+import StoreDropdown from "./StoreDropdown";
 
 export default function Navbar() {
   const location = useLocation();
@@ -87,45 +88,28 @@ export default function Navbar() {
       {userRole === "SuperAdmin" && (
         <>
           <div
-            onClick={() => setIsStoreModalOpen(true)}
-            className="bg-[#1D293D80] border border-[#2B7FFF33] rounded-xl p-4 flex justify-between cursor-pointer"
+            onClick={() => setIsStoreModalOpen(!isStoreModalOpen)}
+            className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 flex justify-between items-center cursor-pointer transition hover:bg-white/20"
           >
-            <span className="text-white text-sm">
+            <span className="text-white text-sm font-medium">
               {selectedStore?.name || "Select Store"}
             </span>
-            <Icon icon="mdi:chevron-down" />
+            <Icon icon="mdi:chevron-down" className="text-white" />
           </div>
 
           {isStoreModalOpen && (
-            <div className="absolute top-28 left-5 right-5 
-                bg-[#0F172A] border border-[#2B7FFF33] 
-                rounded-xl p-3 z-9999
-                max-h-100 overflow-y-auto">
-              {loadingStores && (
-                <p className="text-center text-sm text-gray-400">
-                  Loading stores...
-                </p>
-              )}
-
-              {!loadingStores &&
-                stores.map((store) => (
-                  <div
-                    key={store.id}
-                    onClick={() => {
-                      selectStore(store);
-                      setIsStoreModalOpen(false);
-                    }}
-                    className="p-3 rounded-lg hover:bg-[#2B7FFF20] cursor-pointer"
-                  >
-                    <p className="text-white text-sm">{store.name}</p>
-                    <p className="text-xs text-gray-400">{store.location}</p>
-                  </div>
-                ))}
-            </div>
+            <StoreDropdown
+              stores={stores}
+              loadingStores={loadingStores}
+              selectStore={(store) => {
+                selectStore(store);
+                setIsStoreModalOpen(false);
+              }}
+              closeDropdown={() => setIsStoreModalOpen(false)}
+            />
           )}
         </>
       )}
-
       {/* NAV LINKS */}
       <ul className="flex flex-col gap-4 mt-8 flex-1">
         {navLinks.map((itm) => (
