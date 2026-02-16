@@ -146,10 +146,11 @@ export default function Dashboard() {
       </div>
 
       {/* ================= CALL TREND GRAPH ================= */}
-      <div className="bg-[#0F172B80] border-2 border-[#2B7FFF33] p-8 rounded-2xl">
+      <div className="bg-[#0F172B80] border border-[#2B7FFF33] p-6 rounded-2xl">
+
         <div className="flex items-center justify-between pb-6">
           <div>
-            <h3 className="text-xl">Call Trends - This Week</h3>
+            <h3 className="text-xl">Call Trends - {selectedTime.replace("-", " ")}</h3>
             <p className="text-sm text-[#90A1B9] pt-3">
               Total: {totalCalls} calls
             </p>

@@ -155,6 +155,14 @@ export default function Setting() {
       setPasswordLoading(false);
     }
   };
+  const handleChange = (field) => (e) => {
+    const value = e.target.value;
+    setProfile(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
 
   return (
     <div className="p-6">
@@ -168,11 +176,10 @@ export default function Setting() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`pb-2 ${
-              activeTab === tab
-                ? "text-white"
-                : "text-[#90A1B9]"
-            }`}
+            className={`pb-2 ${activeTab === tab
+              ? "text-white"
+              : "text-[#90A1B9]"
+              }`}
           >
             {tab === "profile"
               ? "Profile"
@@ -183,98 +190,133 @@ export default function Setting() {
 
       {/* ================= PROFILE TAB ================= */}
       {activeTab === "profile" && (
-        <div>
-          <p className="text-sm text-[#90A1B9] mb-4">
-            Profile Image
-          </p>
+        <div className="max-w-4xl transition-all duration-300">
 
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#2B7FFF33]">
-              <img
-                src={getProfileImage()}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
+          {/* ================= Profile Image Card ================= */}
+          <div className="bg-[#0F172A] p-6 rounded-2xl  mb-8 border border-blue-500">
+            <p className="text-sm text-[#90A1B9] mb-6 font-medium">
+              Profile Information
+            </p>
+
+            <div className="flex items-center justify-between flex-wrap gap-6">
+              <div className="flex items-center gap-5">
+                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#2B7FFF40] shadow-md">
+                  <img
+                    src={getProfileImage()}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-white">
+                    {profile.firstName} {profile.lastName}
+                  </h3>
+                  <p className="text-sm text-[#90A1B9]">
+                    {profile.email}
+                  </p>
+                </div>
+              </div>
+
+              {isEditing ? (
+                <label className="cursor-pointer text-[#2B7FFF] text-sm font-medium hover:opacity-80 transition">
+                  Change Photo
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) =>
+                      setSelectedImage(e.target.files?.[0] || null)
+                    }
+                  />
+                </label>
+              ) : (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-5 py-2 rounded-xl bg-[#2B7FFF15] text-[#2B7FFF] text-sm font-medium hover:bg-[#2B7FFF25] transition"
+                >
+                  Edit Profile
+                </button>
+              )}
             </div>
-
-            {isEditing ? (
-              <label className="cursor-pointer text-[#2B7FFF] text-sm">
-                Change
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(e) =>
-                    setSelectedImage(
-                      e.target.files?.[0] || null
-                    )
-                  }
-                />
-              </label>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-1.5 rounded-lg bg-[#2B7FFF15] text-[#2B7FFF] cursor-pointer text-sm"
-              >
-                Edit Profile
-              </button>
-            )}
           </div>
 
+          {/* ================= Form Section ================= */}
           <form
             onSubmit={handleSaveProfile}
-            className="grid gap-6 max-w-3xl"
+            className="bg-[#0F172A] p-6 rounded-2xl grid gap-6 md:grid-cols-2 transition-all duration-300 border border-blue-500"
           >
             <InputField
               label="First Name"
               value={profile.firstName}
+              disabled={!isEditing}
               onChange={(e) =>
-                setProfile({
-                  ...profile,
-                  firstName: e.target.value,
-                })
+                setProfile(prev => ({
+                  ...prev,
+                  firstName: e.target.value
+                }))
               }
+
+              isEditing={isEditing}
             />
+
             <InputField
               label="Last Name"
               value={profile.lastName}
+              disabled={!isEditing}
               onChange={(e) =>
-                setProfile({
-                  ...profile,
-                  lastName: e.target.value,
-                })
+                setProfile(prev => ({
+                  ...prev,
+                  lastName: e.target.value
+                }))
               }
+              isEditing={isEditing}
             />
+
             <InputField
               label="Email"
               value={profile.email}
               disabled
+              isEditing={false}
             />
+
             <InputField
               label="State Location"
               value={profile.stateLocation}
+              disabled={!isEditing}
               onChange={(e) =>
-                setProfile({
-                  ...profile,
-                  stateLocation: e.target.value,
-                })
+                setProfile(prev => ({
+                  ...prev,
+                  stateLocation: e.target.value
+                }))
               }
+              isEditing={isEditing}
             />
 
+            {/* Buttons Row */}
             {isEditing && (
-              <button
-                type="submit"
-                disabled={profileLoading}
-                className="bg-[#05DF72] px-8 py-3 rounded-xl text-white cursor-pointer hover:bg-[#05DF72CC] disabled:bg-[#05DF7299]"
-              >
-                {profileLoading
-                  ? "Saving..."
-                  : "Save"}
-              </button>
+              <div className="md:col-span-2 flex justify-end gap-3 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="px-6 py-2 rounded-xl bg-[#1E293B] text-[#90A1B9] hover:bg-[#243244] transition"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={profileLoading}
+                  className="px-8 py-2 rounded-xl bg-[#05DF72] text-white hover:bg-[#05DF72CC] disabled:bg-[#05DF7299] transition"
+                >
+                  {profileLoading ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
             )}
           </form>
         </div>
       )}
+
 
       {/* ================= PASSWORD TAB ================= */}
       {activeTab === "password" && (
