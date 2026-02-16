@@ -23,7 +23,7 @@ export default function Dashboard() {
   const [selectedTime, setSelectedTime] = useState("today");
   const [loading, setLoading] = useState(false);
 
-  const [trendData, setTrendData] = useState({});
+  const [trendData, setTrendData] = useState([]);
   const [totalCalls, setTotalCalls] = useState(0);
   const [storeSummary, setStoreSummary] = useState(null);
 
@@ -31,9 +31,11 @@ export default function Dashboard() {
 
   const options = [
     { label: "Today", value: "today" },
-    { label: "Past Week", value: "past-week" },
-    { label: "Last Year", value: "last-year" },
+    { label: "This Week", value: "this-week" },
+    { label: "This Month", value: "this-month" },
+    { label: "This Year", value: "this-year" },
   ];
+
 
   /* ================= STORE CHANGE DETECT ================= */
   useEffect(() => {
@@ -57,16 +59,22 @@ export default function Dashboard() {
   }, [storeId, selectedTime]);
 
   const fetchDashboardData = async (activeStoreId) => {
+    if (!activeStoreId) return;
+
     try {
       setLoading(true);
 
       const [trendRes, summaryRes] = await Promise.all([
         getCallTrendsApi(activeStoreId, { range: selectedTime }),
-        getStoreSummaryApi(activeStoreId),
+        getStoreSummaryApi(activeStoreId, { range: selectedTime }),
       ]);
 
-      setTrendData(trendRes?.data?.trend || {});
+
+      // trendRes now returns array of {label, count}
+      setTrendData(trendRes?.data?.trend || []);
       setTotalCalls(trendRes?.data?.total_calls || 0);
+
+      // store summary
       setStoreSummary(summaryRes?.data?.[0] || null);
 
       toast.success(
@@ -75,13 +83,12 @@ export default function Dashboard() {
       );
     } catch (error) {
       console.error("Dashboard API Error:", error);
-      toast.error("Failed to load dashboard data", {
-        id: "store-change",
-      });
+      toast.error("Failed to load dashboard data", { id: "store-change" });
     } finally {
       setLoading(false);
     }
   };
+
 
   /* ================= EMPTY STATE ================= */
   if (role === "SUPER_ADMIN" && !storeId) {
@@ -97,18 +104,16 @@ export default function Dashboard() {
       {/* ================= STATUS CARDS ================= */}
       <div className="grid grid-cols-3 gap-6 pb-4">
         <DashboardStatus
-          title="Total Calls Today"
+          title={`Total Calls ${options.find(o => o.value === selectedTime)?.label}`}
           value={storeSummary?.total_calls ?? 0}
           icone="line-md:phone"
-          parsent={12}
           styls="from-[#00B8DB] to-[#2B7FFF]"
         />
 
         <DashboardStatus
           title="AI-Handled Calls"
-          value={storeSummary?.answered ?? 0}
+          value={storeSummary?.ai_handled ?? 0}
           icone="bx:bot"
-          parsent={77}
           styls="from-[#AD46FF] to-[#F6339A]"
         />
 
@@ -116,31 +121,27 @@ export default function Dashboard() {
           title="Warm Transfer"
           value={storeSummary?.warm_transfer ?? 0}
           icone="fluent:arrow-wrap-20-filled"
-          parsent={18}
           styls="from-[#FB2C36] to-[#FF6900]"
         />
 
         <DashboardStatus
           title="Appointments Booked"
-          value={storeSummary?.appointments ?? 0}
+          value={storeSummary?.appointments_booked ?? 0}
           icone="uil:schedule"
-          parsent={8}
           styls="from-[#00BC7D] to-[#00C950]"
         />
 
         <DashboardStatus
           title="Missed/Failed Calls"
-          value={storeSummary?.missed ?? 0}
+          value={storeSummary?.missed_calls ?? 0}
           icone="oui:cross-in-circle-empty"
-          parsent={3}
           styls="from-[#FF2056] to-[#FB2C36]"
         />
 
         <DashboardStatus
           title="Avg Call Duration"
-          value={storeSummary?.avg_duration ?? "0:00"}
+          value={storeSummary?.avg_call_duration ?? "0:00"}
           icone="teenyicons:stopwatch-outline"
-          parsent={15}
           styls="from-[#2B7FFF] to-[#615FFF]"
         />
       </div>
@@ -150,7 +151,7 @@ export default function Dashboard() {
 
         <div className="flex items-center justify-between pb-6">
           <div>
-            <h3 className="text-xl">Call Trends - {selectedTime.replace("-", " ")}</h3>
+            <h3 className="text-xl">Call Trends - {options.find(o => o.value === selectedTime)?.label}</h3>
             <p className="text-sm text-[#90A1B9] pt-3">
               Total: {totalCalls} calls
             </p>
