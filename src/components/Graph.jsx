@@ -8,15 +8,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-export default function Graph({ data = {}, loading }) {
+export default function Graph({ data = [], loading }) {
+  const formattedData = (data || []).map(item => ({
+    name: item.label,
+    calls: item.count,
+  }));
 
-  // 🔥 backend trend কে array এ convert করো
-  const formattedData = Object.entries(data || {}).map(
-    ([key, value]) => ({
-      name: key,
-      calls: value,
-    })
-  );
 
   return (
     <div className="w-full">
