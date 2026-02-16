@@ -41,7 +41,7 @@ export default function EditPriceModal({
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <Icon icon="mdi:pencil" className="text-[#2B7FFF]" width={22} />
+          <Icon icon="mdi:pencil" className="text-[#2B7FFF] " width={22} />
           <h2 className="text-lg font-semibold text-white">
             Edit Price
           </h2>

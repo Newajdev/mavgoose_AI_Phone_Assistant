@@ -48,3 +48,17 @@ export const updatePriceApi = (id, data, storeId) =>
       params: storeId ? { store: storeId } : {},
     }
   );
+
+/* ================= CREATE MASTER DATA ================= */
+
+export const createCategoryApi = (data) =>
+  api.post("/api/v1/services/categories/", data);
+
+export const createBrandApi = (data) =>
+  api.post("/api/v1/services/brands/", data);
+
+export const createDeviceModelApi = (data) =>
+  api.post("/api/v1/services/device-models/", data);
+
+export const createRepairTypeApi = (data) =>
+  api.post("/api/v1/services/repair-types/", data);
