@@ -1,26 +1,35 @@
 import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 
-export default function AddUserModal({ onClose, onSave }) {
+export default function AddUserModal({ onClose, onSave, stores = [] }) {
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     role: "Staff",
+    store: "",
+    password: "",
   });
 
   const handleSubmit = () => {
-  if (!formData.name.trim() || !formData.email.trim()) {
-    alert("Please fill in all required fields");
-    return;
-  }
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.store ||
+      !formData.password.trim()
+    ) {
+      alert("Please fill in all required fields including Password");
+      return;
+    }
 
-  onSave({
-    name: formData.name.trim(),
-    email: formData.email.trim(),
-    role: formData.role,
-    password: "Temp@1234", // 👈 REQUIRED
-  });
-};
+    onSave({
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      role: formData.role,
+      password: formData.password,
+      store: formData.store,
+    });
+  };
 
 
   return (
@@ -53,7 +62,7 @@ export default function AddUserModal({ onClose, onSave }) {
             />
           </div>
 
-        {/* Last Name */}
+          {/* Last Name */}
           <div>
             <label className="text-[#90A1B9] text-sm font-medium mb-2 block">
               Last Name
@@ -89,7 +98,7 @@ export default function AddUserModal({ onClose, onSave }) {
           </div>
 
           {/* Role */}
-          <div className="md:col-span-2">
+          <div>
             <label className="text-[#90A1B9] text-sm font-medium mb-2 block">
               Role
             </label>
@@ -103,6 +112,43 @@ export default function AddUserModal({ onClose, onSave }) {
               <option value="Staff">Staff</option>
               <option value="Store Manager">Store Manager</option>
               <option value="Super Admin">Super Admin</option>
+            </select>
+          </div>
+          {/* Password */}
+          <div>
+            <label className="text-[#90A1B9] text-sm font-medium mb-2 block">
+              Password
+            </label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              placeholder="Enter password"
+              className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 text-white placeholder:text-[#90A1B9] focus:border-[#2B7FFF] focus:outline-none"
+            />
+          </div>
+
+
+          {/* Store */}
+          <div>
+            <label className="text-[#90A1B9] text-sm font-medium mb-2 block">
+              Store
+            </label>
+            <select
+              value={formData.store}
+              onChange={(e) =>
+                setFormData({ ...formData, store: e.target.value })
+              }
+              className="w-full bg-[#0F172B60] border-2 border-[#2B7FFF15] rounded-xl px-4 py-3 text-white focus:border-[#2B7FFF] focus:outline-none"
+            >
+              <option value="">Select a store</option>
+              {stores.map((store) => (
+                <option key={store.id} value={store.id}>
+                  {store.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
