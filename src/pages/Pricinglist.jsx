@@ -52,7 +52,8 @@ export default function PricingList() {
 
   /* ================= PAGINATION STATE ================= */
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [perPage, setPerPage] = useState(20);
+
 
   /* ================= STORE CHANGE DETECT ================= */
   useEffect(() => {
@@ -143,8 +144,7 @@ export default function PricingList() {
       setCurrentPage(1);
 
       toast.success(
-        `Pricing loaded for ${
-          selectedStore?.name || "store"
+        `Pricing loaded for ${selectedStore?.name || "store"
         }`,
         { id: "pricing-store" }
       );
@@ -190,16 +190,16 @@ export default function PricingList() {
 
   /* ================= PAGINATION LOGIC ================= */
   const totalPages = Math.ceil(
-    pricingData.length / itemsPerPage
+    pricingData.length / perPage
   );
 
   const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
+    const start = (currentPage - 1) * perPage;
     return pricingData.slice(
       start,
-      start + itemsPerPage
+      start + perPage
     );
-  }, [pricingData, currentPage]);
+  }, [pricingData, currentPage, perPage]);
 
   /* ================= EMPTY STATE ================= */
   if (role === "SUPER_ADMIN" && !storeId) {
@@ -336,26 +336,25 @@ export default function PricingList() {
               <div className="flex">
                 <button
                   onClick={() => toggleStatus(item)}
-                  className={`min-w-28 text-center py-1 rounded-full text-xs font-medium ${
-                    item.status === "ACTIVE"
-                      ? "bg-green-600/20 text-green-400"
-                      : "bg-gray-600/20 text-gray-400"
-                  }`}
+                  className={`min-w-28 text-center py-1 rounded-full text-xs cursor-pointer font-medium ${item.status === "ACTIVE"
+                    ? "bg-green-600/20 text-green-400"
+                    : "bg-gray-600/20 text-gray-400"
+                    }`}
                 >
                   {item.status}
                 </button>
               </div>
 
-            
-                {editingItem && (
-        <EditPriceModal
-          item={editingItem}
-          storeId={storeId}
-          onClose={() => setEditingItem(null)}
-          onSuccess={fetchPriceList}
-        />
-      )}
-   
+
+              {editingItem && (
+                <EditPriceModal
+                  item={editingItem}
+                  storeId={storeId}
+                  onClose={() => setEditingItem(null)}
+                  onSuccess={fetchPriceList}
+                />
+              )}
+
 
               <div className="text-gray-400 text-sm">
                 {new Date(item.updated_at).toISOString().split("T")[0]}
@@ -364,12 +363,12 @@ export default function PricingList() {
               <div className="flex justify-end">
                 <button
                   onClick={() => setEditingItem(item)}
-                  className="text-[#2B7FFF] hover:text-white transition"
+                  className="text-[#2B7FFF] hover:text-white transition cursor-pointer"
                 >
                   <Icon icon="mdi:pencil" width={18} />
                 </button>
               </div>
-              
+
             </div>
           ))
         )}
@@ -378,8 +377,14 @@ export default function PricingList() {
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
+        perPage={perPage}
         onPageChange={setCurrentPage}
+        onPerPageChange={(value) => {
+          setPerPage(value);
+          setCurrentPage(1);
+        }}
       />
+
 
       {isAddModalOpen && (
         <AddPriceModal
@@ -389,7 +394,7 @@ export default function PricingList() {
         />
       )}
 
-      
+
     </div>
   );
 }
