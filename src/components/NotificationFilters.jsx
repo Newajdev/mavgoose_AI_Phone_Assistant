@@ -9,7 +9,6 @@ export default function NotificationFilters({
     { id: "all", label: "All" },
     { id: "unread", label: "Unread" },
     { id: "calls", label: "Calls" },
-    { id: "appointment", label: "Appointments" },
     { id: "system", label: "System" },
   ];
 

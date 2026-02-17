@@ -4,12 +4,6 @@ import { Icon } from '@iconify/react';
 export default function DetailedNotificationCard({ notification, onMarkRead, onDismiss }) {
     const getIcon = (type) => {
         switch (type) {
-
-
-
-            case 'appointment': return { icon: 'mdi:calendar-check', color: 'text-[#05DF72]', bg: 'bg-[#05DF7215]' };
-            case 'transfer': return { icon: 'mdi:phone-forward', color: 'text-[#FF8904]', bg: 'bg-[#FF890415]' };
-            case 'latency': return { icon: 'mdi:alert-circle', color: 'text-[#FF2056]', bg: 'bg-[#FF205615]' };
             case 'USER': return { icon: 'mdi:account-plus', color: 'text-[#AD46FF]', bg: 'bg-[#AD46FF15]' };
             case 'CALLS': return { icon: 'mdi:phone-check', color: 'text-[#2B7FFF]', bg: 'bg-[#2B7FFF15]' };
             case 'SYSTEM': return { icon: 'mdi:cog', color: 'text-[#90A1B9]', bg: 'bg-[#90A1B915]' };

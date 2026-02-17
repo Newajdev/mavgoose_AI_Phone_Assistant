@@ -20,43 +20,43 @@ export default function SendEmail() {
 
   const onSubmit = async (data) => {
 
-  if (loading) {
-    return;
-  }
+    if (loading) {
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
-  const toastId = toast.loading("Sending reset code...");
+    const toastId = toast.loading("Sending reset code...");
 
-  try {
-    const res = await forgotPasswordApi({ email: data.email });
+    try {
+      const res = await forgotPasswordApi({ email: data.email });
 
-    console.log("➡️ Response Data:", res?.data);
+      console.log("➡️ Response Data:", res?.data);
 
-    toast.success("OTP sent to your email 📩", { id: toastId });
+      toast.success("OTP sent to your email 📩", { id: toastId });
 
-    navigate("/verify-otp", {
-      state: { email: data.email },
-    });
-  } catch (error) {
+      navigate("/verify-otp", {
+        state: { email: data.email },
+      });
+    } catch (error) {
 
-    toast.dismiss(toastId);
+      toast.dismiss(toastId);
 
-    const message =
-      error?.response?.data?.email?.[0] ||
-      error?.response?.data?.detail ||
-      "Failed to send reset email";
+      const message =
+        error?.response?.data?.email?.[0] ||
+        error?.response?.data?.detail ||
+        "Failed to send reset email";
 
-    setError("email", {
-      type: "manual",
-      message,
-    });
+      setError("email", {
+        type: "manual",
+        message,
+      });
 
-    toast.error(message);
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <AuthContainer>
@@ -96,7 +96,7 @@ export default function SendEmail() {
           disabled={loading}
           className="w-full bg-linear-to-r from-[#00D1FF] to-[#2B7FFF] text-white font-bold py-3.5 rounded-xl shadow-[0_4px_15px_#2B7FFF40] transition-all disabled:opacity-60"
         >
-          {loading ? "Sending..." : "Send Reset Link"}
+          {loading ? "Sending..." : "Send Otp"}
         </button>
 
         <div className="text-center">

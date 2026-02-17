@@ -3,7 +3,6 @@ import formatTitle from "../libs/formateTitle";
 import { Icon } from "@iconify/react";
 import { useContext, useMemo } from "react";
 import { AuthContext } from "../provider/AuthContext";
-
 /* 🔧 BACKEND BASE URL */
 const BACKEND_URL = "http://172.252.13.97:8020";
 
@@ -17,9 +16,8 @@ export default function Topbar({ isMobile = false }) {
   /* ================= PROFILE IMAGE ================= */
   const profileImage = useMemo(() => {
     if (!user?.profile_image) {
-      return "https://api.dicebear.com/7.x/avataaars/svg";
+      return "/avater.png";
     }
-
     // absolute URL
     if (user.profile_image.startsWith("http")) {
       return user.profile_image;
@@ -57,9 +55,8 @@ export default function Topbar({ isMobile = false }) {
         {/* 👤 Profile */}
         <button
           onClick={() => navigate("/setting")}
-          className={`rounded-full overflow-hidden border-2 border-[#2B7FFF33] ${
-            isMobile ? "w-10 h-10" : "w-16 h-16"
-          }`}
+          className={`rounded-full overflow-hidden border-2 border-[#2B7FFF33] ${isMobile ? "w-10 h-10" : "w-16 h-16"
+            }`}
         >
           <img
             src={`${profileImage}?t=${user?.updated_at || Date.now()}`}
