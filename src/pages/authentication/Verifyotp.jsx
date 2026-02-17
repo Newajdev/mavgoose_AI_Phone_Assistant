@@ -84,8 +84,44 @@ export default function VerifyOTP() {
     }
   };
 
+  // const handleResend = async () => {
+  //   if (loading) return;
+
+  //   setLoading(true);
+  //   const toastId = toast.loading("Resending code...");
+
+  //   try {
+  //     await resendOtpApi({ email });
+  //     toast.success("New OTP sent 📩", { id: toastId });
+  //   } catch (error) {
+  //     toast.dismiss(toastId);
+
+  //     const message =
+  //       error?.response?.data?.detail ||
+  //       "Please wait before requesting again";
+
+  //     toast.error(message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const [resendTimer, setResendTimer] = useState(0);
+
+  // Start timer whenever OTP is sent or resent
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
   const handleResend = async () => {
-    if (loading) return;
+    if (loading || resendTimer > 0) return; // Prevent resend if timer active
 
     setLoading(true);
     const toastId = toast.loading("Resending code...");
@@ -93,18 +129,20 @@ export default function VerifyOTP() {
     try {
       await resendOtpApi({ email });
       toast.success("New OTP sent 📩", { id: toastId });
+
+      setResendTimer(30); // Start 30 sec cooldown
     } catch (error) {
       toast.dismiss(toastId);
 
       const message =
-        error?.response?.data?.detail ||
-        "Please wait before requesting again";
+        error?.response?.data?.detail || "Please wait before requesting again";
 
       toast.error(message);
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <AuthContainer>
@@ -156,11 +194,13 @@ export default function VerifyOTP() {
           Didn't receive code?{" "}
           <span
             onClick={handleResend}
-            className="text-[#00D1FF] cursor-pointer hover:underline not-italic font-medium"
+            className={`text-[#00D1FF] cursor-pointer hover:underline not-italic font-medium ${resendTimer > 0 ? "opacity-50 cursor-not-allowed" : ""
+              }`}
           >
-            Resend Code
+            {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend Code"}
           </span>
         </p>
+
       </div>
     </AuthContainer>
   );

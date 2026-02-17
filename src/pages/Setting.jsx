@@ -66,7 +66,7 @@ export default function Setting() {
       return `${BACKEND_URL}${user.profile_image}?t=${Date.now()}`;
     }
 
-    return "https://api.dicebear.com/7.x/avataaars/svg";
+    return "/avater.png";
   };
 
   /* ================= SAVE PROFILE ================= */
