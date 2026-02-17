@@ -5,3 +5,6 @@ export const getNotificationsApi = (params = {}) =>
 
 export const markNotificationReadApi = (id) =>
   axios.patch(`/api/v1/notifications/${id}/read/`);
+
+export const deleteNotificationApi = (id) =>
+  axios.delete(`/api/v1/notifications/${id}/delete/`);

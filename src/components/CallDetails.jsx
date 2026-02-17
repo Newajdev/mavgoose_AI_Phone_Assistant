@@ -69,7 +69,7 @@ export default function CallDetails({ call }) {
         {/* Outcome */}
         <div className="mb-4">
           <p className="text-base text-[#90A1B9]">Outcome</p>
-          <p className="text-white font-semibold text-lg mb-6">{call.outcome}</p>
+          <p className="text-white font-semibold text-base mb-6">{call.outcome}</p>
         </div>
 
         {

@@ -50,23 +50,23 @@ const router = createBrowserRouter([
       {
         path: "/pricing-management",
         element: (
-          <ProtectedRoute allowedRoles={["SUPER_ADMIN", "STORE_MANAGER"]}>
+          <ProtectedRoute allowedRoles={["SUPER_ADMIN", "STORE_MANAGER", "STAFF"]}>
             <PricingList />
           </ProtectedRoute>
         ),
       },
-      {
-        path: "/appointment",
-        element: (
-          <ProtectedRoute allowedRoles={["SUPER_ADMIN", "STORE_MANAGER", "STAFF"]}>
-            <Appointment />
-          </ProtectedRoute>
-        ),
-      },
+      // {
+      //   path: "/appointment",
+      //   element: (
+      //     <ProtectedRoute allowedRoles={["SUPER_ADMIN", "STORE_MANAGER", "STAFF"]}>
+      //       <Appointment />
+      //     </ProtectedRoute>
+      //   ),
+      // },
       {
         path: "/notifications",
         element: (
-          <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+          <ProtectedRoute allowedRoles={["SUPER_ADMIN", "STORE_MANAGER", "STAFF"]}>
             <Notifications />
           </ProtectedRoute>
         ),
