@@ -20,7 +20,7 @@ export default function Dashboard() {
 
   const storeId = getActiveStoreId();
 
-  const [selectedTime, setSelectedTime] = useState("today");
+  const [selectedTime, setSelectedTime] = useState("this-week");
   const [loading, setLoading] = useState(false);
 
   const [trendData, setTrendData] = useState([]);

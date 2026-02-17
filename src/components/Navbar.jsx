@@ -59,7 +59,7 @@ export default function Navbar() {
     { title: "Dashboard Overview", icon: "fluent:home-12-regular", activeI: "fluent:home-24-filled", path: "/dashboard", roles: ["SuperAdmin", "StoreManager", "Staff"] },
     { title: "Call Logs", icon: "proicons:call", activeI: "fluent:call-12-filled", path: "/call-logs", roles: ["SuperAdmin", "StoreManager", "Staff"] },
     { title: "Call Transfer", icon: "mingcute:transfer-3-line", activeI: "streamline-ultimate:data-transfer-circle-bold", path: "/call-transfer", roles: ["SuperAdmin", "StoreManager", "Staff"] },
-    { title: "Appointments", icon: "hugeicons:appointment-01", activeI: "mingcute:schedule-fill", path: "/appointment", roles: ["SuperAdmin", "StoreManager", "Staff"] },
+    // { title: "Appointments", icon: "hugeicons:appointment-01", activeI: "mingcute:schedule-fill", path: "/appointment", roles: ["SuperAdmin", "StoreManager", "Staff"] },
     { title: "Pricing Management", icon: "ph:currency-dollar-bold", activeI: "heroicons:currency-dollar-16-solid", path: "/pricing-management", roles: ["SuperAdmin", "StoreManager", "Staff"] },
     { title: "AI Behavior Settings", icon: "ant-design:robot-outlined", activeI: "ant-design:robot-filled", path: "/ai-behavior-settings", roles: ["SuperAdmin", "StoreManager"] },
     { title: "User Management", icon: "rivet-icons:user-group", activeI: "rivet-icons:user-group-solid", path: "/user-management", roles: ["SuperAdmin"] },

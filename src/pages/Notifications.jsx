@@ -4,18 +4,19 @@ import DetailedNotificationCard from "../components/DetailedNotificationCard";
 import {
   getNotificationsApi,
   markNotificationReadApi,
+  deleteNotificationApi,
 } from "../libs/notifications.api";
 import { mapNotification } from "../utils/notificationMapper";
 import { AuthContext } from "../provider/AuthContext";
 import toast from "react-hot-toast";
+import CallLogs from "./CallLogs";
 
 export default function Notifications() {
-  /* ================= CONTEXT ================= */
   const { role, getActiveStoreId } = useContext(AuthContext);
-  const storeId = getActiveStoreId(); // only for refetch trigger
+  const storeId = getActiveStoreId();
 
-  /* ================= STATE ================= */
   const [activeFilter, setActiveFilter] = useState("all");
+  const [allNotifications, setAllNotifications] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -28,93 +29,81 @@ export default function Notifications() {
 
       const params = {};
 
-      // ✅ ONLY unread has status param
-      if (activeFilter === "unread") {
-        params.status = "unread";
+      // Filter by store only for non-admins
+      if (role !== "SUPER_ADMIN") {
+        if (storeId) params.store = storeId;
       }
 
-      // ✅ ONLY category filters (NOT all / unread)
-      if (
-        activeFilter !== "all" &&
-        activeFilter !== "unread"
-      ) {
-        params.category = activeFilter.toUpperCase();
-      }
+      // Filter by unread or category
+      if (activeFilter === "unread") params.status = "unread";
+      else if (activeFilter !== "all") params.category = activeFilter.toUpperCase();
 
       const { data } = await getNotificationsApi(params);
+      const list = Array.isArray(data) ? data : data?.results || [];
 
-      setNotifications(
-        Array.isArray(data) ? data.map(mapNotification) : []
-      );
+      const mapped = list.map(mapNotification);
+      setAllNotifications(mapped);
+
+      // Apply active filter
+      applyFilter(mapped, activeFilter);
 
       if (showToast) {
-        toast.success("Notifications updated", {
-          id: "notifications-refetch",
-        });
+        toast.success("Notifications updated", { id: "notifications-refetch" });
       }
     } catch (error) {
-      console.error(
-        "Notification fetch failed",
-        error?.response?.data || error
-      );
-      toast.error("Failed to load notifications", {
-        id: "notifications-error",
-      });
+      console.error("Notification fetch failed", error?.response?.data || error);
+      toast.error("Failed to load notifications", { id: "notifications-error" });
     } finally {
       setLoading(false);
     }
   };
 
+  const applyFilter = (allList, filter) => {
+    if (filter === "all") {
+      setNotifications(allList);
+    } else if (filter === "unread") {
+      setNotifications(allList.filter((n) => n.unread));
+    } else {
+      setNotifications(
+        allList.filter((n) => n.type && n.type.toLowerCase() === filter)
+      );
+    }
+  };
+
   /* ================= FILTER CHANGE ================= */
   useEffect(() => {
-    fetchNotifications(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFilter]);
+    applyFilter(allNotifications, activeFilter);
+  }, [activeFilter, allNotifications]);
 
   /* ================= STORE CHANGE ================= */
   useEffect(() => {
-    if (role === "SUPER_ADMIN" && !storeId) return;
-
-    setNotifications([]);
+    if (role !== "SUPER_ADMIN" && !storeId) return;
 
     fetchNotifications(!firstLoadRef.current);
-
     firstLoadRef.current = false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storeId]);
 
   /* ================= ACTIONS ================= */
   const handleMarkRead = async (id) => {
     try {
       await markNotificationReadApi(id);
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === id ? { ...n, unread: false } : n
-        )
+      setAllNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
       );
     } catch (error) {
       console.error("Mark read failed", error);
     }
   };
-
-  const handleDismiss = (id) => {
-    // backend delete নেই → UI only
-    setNotifications((prev) =>
-      prev.filter((n) => n.id !== id)
-    );
+  const handleDismiss = async (id) => {
+    try {
+      await deleteNotificationApi(id); // delete from DB
+      setAllNotifications((prev) => prev.filter((n) => n.id !== id)); // remove from UI
+    } catch (error) {
+      console.error("Failed to delete notification", error);
+      toast.error("Failed to delete notification");
+    }
   };
 
-  /* ================= GUARD ================= */
-  if (role === "SUPER_ADMIN" && !storeId) {
-    return (
-      <div className="p-10 text-center text-[#90A1B9]">
-        <h2 className="text-xl font-bold mb-2">
-          No store selected
-        </h2>
-        <p>Please select a store to view notifications.</p>
-      </div>
-    );
-  }
 
   /* ================= UI ================= */
   return (
@@ -122,7 +111,7 @@ export default function Notifications() {
       <NotificationFilters
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
-        notifications={notifications}
+        notifications={allNotifications} // always pass full list for counts
       />
 
       <div className="mt-8 space-y-1">

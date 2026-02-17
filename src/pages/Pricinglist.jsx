@@ -27,7 +27,13 @@ export default function PricingList() {
     useContext(AuthContext);
 
   const storeId = getActiveStoreId();
-  const isAdmin = role === "SUPER_ADMIN";
+  const isSuperAdmin = role === "SUPER_ADMIN";
+  const isStoreManager = role === "STORE_MANAGER";
+  const isStaff = role === "STAFF";
+
+  // যারা modify করতে পারবে
+  const canManagePricing = isSuperAdmin || isStoreManager;
+
 
   const [pricingData, setPricingData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -291,7 +297,7 @@ export default function PricingList() {
           ))}
         </select>
 
-        {isAdmin && (
+        {canManagePricing && (
           <button
             onClick={() => setIsAddModalOpen(true)}
             className="ml-auto bg-[#2B7FFF] text-white px-6 py-2 rounded-full flex items-center gap-2 hover:bg-[#2B7FFFCC]"
@@ -334,16 +340,28 @@ export default function PricingList() {
               <div className="text-white font-semibold">${item.price}</div>
 
               <div className="flex">
-                <button
-                  onClick={() => toggleStatus(item)}
-                  className={`min-w-28 text-center py-1 rounded-full text-xs cursor-pointer font-medium ${item.status === "ACTIVE"
-                    ? "bg-green-600/20 text-green-400"
-                    : "bg-gray-600/20 text-gray-400"
-                    }`}
-                >
-                  {item.status}
-                </button>
+                {canManagePricing ? (
+                  <button
+                    onClick={() => toggleStatus(item)}
+                    className={`min-w-28 text-center py-1 rounded-full text-xs cursor-pointer font-medium ${item.status === "ACTIVE"
+                      ? "bg-green-600/20 text-green-400"
+                      : "bg-gray-600/20 text-gray-400"
+                      }`}
+                  >
+                    {item.status}
+                  </button>
+                ) : (
+                  <div
+                    className={`min-w-28 text-center py-1 rounded-full text-xs font-medium ${item.status === "ACTIVE"
+                      ? "bg-green-600/20 text-green-400"
+                      : "bg-gray-600/20 text-gray-400"
+                      }`}
+                  >
+                    {item.status}
+                  </div>
+                )}
               </div>
+
 
 
               {editingItem && (
@@ -360,14 +378,17 @@ export default function PricingList() {
                 {new Date(item.updated_at).toISOString().split("T")[0]}
               </div>
 
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setEditingItem(item)}
-                  className="text-[#2B7FFF] hover:text-white transition cursor-pointer"
-                >
-                  <Icon icon="mdi:pencil" width={18} />
-                </button>
-              </div>
+              {canManagePricing && (
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setEditingItem(item)}
+                    className="text-[#2B7FFF] hover:text-white transition cursor-pointer"
+                  >
+                    <Icon icon="mdi:pencil" width={18} />
+                  </button>
+                </div>
+              )}
+
 
             </div>
           ))
