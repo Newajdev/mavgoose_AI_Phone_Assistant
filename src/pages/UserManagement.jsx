@@ -247,7 +247,7 @@ export default function UserManagement() {
                 >
                   <Icon
                     icon="mdi:delete"
-                    className="text-[#FF2056] cursor-pointer hover:text-[#FF2056CC] hover:scale-150 transition-transform"
+                    className="text-[#FF2056] cursor-pointer hover:text-[#FF2056CC] text-xl hover:scale-150 transition-transform"
                   />
                 </button>
 
