@@ -1,6 +1,6 @@
 import axios from "axios";
 import { getToken, removeAllTokens } from "../utils/cookies";
-import { Navigate } from "react-router-dom";
+// import { Navigate } from "react-router-dom";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -21,7 +21,7 @@ api.interceptors.response.use(
     if (err?.response?.status === 401) {
       removeAllTokens();
       localStorage.removeItem("auth");
-      Navigate = "/login";
+      window.location.href = "/login";
     }
     return Promise.reject(err);
   }
