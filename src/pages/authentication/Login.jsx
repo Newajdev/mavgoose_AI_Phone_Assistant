@@ -29,6 +29,8 @@ export default function Login() {
       password: data.password,
     });
 
+    console.log(loginRes)
+
     // save tokens
     setToken(loginRes.data.tokens.access, "access");
     setToken(loginRes.data.tokens.refresh, "refresh");

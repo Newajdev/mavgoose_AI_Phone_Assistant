@@ -29,11 +29,9 @@ export default function PricingList() {
   const storeId = getActiveStoreId();
   const isSuperAdmin = role === "SUPER_ADMIN";
   const isStoreManager = role === "STORE_MANAGER";
-  const isStaff = role === "STAFF";
+  // const isStaff = role === "STAFF";
 
-  // যারা modify করতে পারবে
   const canManagePricing = isSuperAdmin || isStoreManager;
-
 
   const [pricingData, setPricingData] = useState([]);
   const [loading, setLoading] = useState(false);

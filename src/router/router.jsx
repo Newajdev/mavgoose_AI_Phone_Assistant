@@ -10,7 +10,6 @@ import Changepassword from "../pages/authentication/Changepassword";
 import CallLogs from "../pages/CallLogs";
 import CallTransfer from "../pages/CallTransfer";
 import PricingList from "../pages/Pricinglist";
-import Appointment from "../pages/Appointment";
 import Notifications from "../pages/Notifications";
 import Setting from "../pages/Setting";
 import AISettings from "../pages/AISettings";
