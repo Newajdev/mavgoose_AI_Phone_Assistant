@@ -31,7 +31,7 @@ export default function SendEmail() {
     try {
       const res = await forgotPasswordApi({ email: data.email });
 
-      console.log("➡️ Response Data:", res?.data);
+      // console.log("➡️ Response Data:", res?.data);
 
       toast.success("OTP sent to your email 📩", { id: toastId });
 

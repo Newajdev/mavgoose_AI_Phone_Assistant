@@ -100,7 +100,7 @@ export default function UserManagement() {
             : null,
         };
       });
-      console.log(formatted);
+      // console.log(formatted);
       setUsers(formatted);
 
       if (showToast) {
