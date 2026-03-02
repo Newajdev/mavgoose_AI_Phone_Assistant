@@ -4,7 +4,8 @@ import { Icon } from "@iconify/react";
 import { useContext, useMemo } from "react";
 import { AuthContext } from "../provider/AuthContext";
 /* 🔧 BACKEND BASE URL */
-const BACKEND_URL = "http://172.252.13.97:8020";
+const BACKEND_URL = import.meta.env.VITE_API_URL;
+
 
 export default function Topbar({ isMobile = false }) {
   const location = useLocation();
@@ -19,12 +20,15 @@ export default function Topbar({ isMobile = false }) {
       return "/avater.png";
     }
     // absolute URL
-    if (user.profile_image.startsWith("http")) {
-      return user.profile_image;
-    }
+    // if (user.profile_image.startsWith("http")) {
+    //   return user.profile_image;
+    // }
 
-    // relative path (/media/...)
-    return `${BACKEND_URL}${user.profile_image}`;
+    // // relative path (/media/...)
+    // return `${BACKEND_URL}${user.profile_image}`;
+
+    return "/avater.png";
+
   }, [user?.profile_image]);
 
   return (
