@@ -35,9 +35,9 @@ export default function CallLogs() {
       prevStoreRef.current &&
       prevStoreRef.current !== storeId
     ) {
-      toast.loading("Loading call logs for new store...", {
-        id: "calllogs-store",
-      });
+      // toast.loading("Loading call logs for new store...", {
+      //   id: "calllogs-store",
+      // });
     }
 
     prevStoreRef.current = storeId;

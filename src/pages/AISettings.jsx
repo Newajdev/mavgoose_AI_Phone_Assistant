@@ -151,7 +151,7 @@ export default function AISettings() {
       if (err.response?.status === 404) {
         setNotFound(true);
         if (showToast) {
-          toast("No AI settings found for this store");
+          // toast("No AI settings found for this store");
         }
       } else {
         // console.error("Failed to load AI behavior", err);

@@ -36,9 +36,9 @@ export default function CallTransfer() {
       prevStoreRef.current &&
       prevStoreRef.current !== storeId
     ) {
-      toast.loading("Loading call transfer settings...", {
-        id: "calltransfer-store",
-      });
+      // toast.loading("Loading call transfer settings...", {
+      //   id: "calltransfer-store",
+      // });
     }
 
     prevStoreRef.current = storeId;

@@ -67,9 +67,9 @@ export default function PricingList() {
       prevStoreRef.current &&
       prevStoreRef.current !== storeId
     ) {
-      toast.loading("Loading pricing for new store...", {
-        id: "pricing-store",
-      });
+      // toast.loading("Loading pricing for new store...", {
+      //   id: "pricing-store",
+      // });
     }
 
     prevStoreRef.current = storeId;

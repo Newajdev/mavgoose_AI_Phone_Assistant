@@ -41,14 +41,11 @@ export default function Dashboard() {
   useEffect(() => {
     if (!storeId) return;
 
-    // 🔥 only fire when store actually changes
-    if (prevStoreRef.current && prevStoreRef.current !== storeId) {
-      toast.loading("Switching store...", { id: "store-change" });
+    if (prevStoreRef.current !== storeId) {
+      // toast.loading("Switching store...", { id: "store-change" });
+      prevStoreRef.current = storeId;
     }
-
-    prevStoreRef.current = storeId;
   }, [storeId]);
-
   /* ================= FETCH DASHBOARD ================= */
   useEffect(() => {
     if (!storeId) return;
