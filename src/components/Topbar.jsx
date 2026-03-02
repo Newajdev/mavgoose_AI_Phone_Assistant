@@ -19,18 +19,16 @@ export default function Topbar({ isMobile = false }) {
     if (!user?.profile_image) {
       return "/avater.png";
     }
-    // absolute URL
-    // if (user.profile_image.startsWith("http")) {
-    //   return user.profile_image;
-    // }
 
-    // // relative path (/media/...)
-    // return `${BACKEND_URL}${user.profile_image}`;
+    if (user.profile_image.startsWith("http")) {
+      return user.profile_image;
+    }
 
-    return "/avater.png";
+    const base = BACKEND_URL.replace(/\/$/, "");
+    const path = user.profile_image.replace(/^\//, "");
 
+    return `${base}/${path}`;
   }, [user?.profile_image]);
-
   return (
     <div className="flex justify-between items-center w-full">
       {!isMobile && (

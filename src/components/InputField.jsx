@@ -10,6 +10,7 @@ export default function InputField({
   name,
   rules,
   error,
+  isEditing,
   disabled = false,
   ...props
 }) {
@@ -23,11 +24,10 @@ export default function InputField({
 
       <div
         className={`relative flex items-center bg-[#0F172B60] border-2 rounded-xl transition-all
-        ${
-          error
+        ${error
             ? "border-[#FF205633] focus-within:border-[#FF2056]"
             : "border-[#2B7FFF15] focus-within:border-[#2B7FFF]"
-        }`}
+          }`}
       >
         {icon && (
           <div className="pl-4 text-[#90A1B9]">

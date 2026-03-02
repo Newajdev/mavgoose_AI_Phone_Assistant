@@ -8,7 +8,7 @@ import {
 import { AuthContext } from "../provider/AuthContext";
 
 /* 🔧 BACKEND BASE URL */
-const BACKEND_URL = "http://172.252.13.97:8020";
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 export default function Setting() {
   const { user, fetchProfile } = useContext(AuthContext);
@@ -55,20 +55,26 @@ export default function Setting() {
 
   /* ================= PROFILE IMAGE ================= */
   const getProfileImage = () => {
+    // 1️⃣ If user selected new image (preview)
     if (selectedImage) {
       return URL.createObjectURL(selectedImage);
     }
 
+    // 2️⃣ If image from backend exists
     if (user?.profile_image) {
       if (user.profile_image.startsWith("http")) {
-        return `${user.profile_image}?t=${Date.now()}`;
+        return `${user.profile_image}?t=${user.updated_at ?? ""}`;
       }
-      return `${BACKEND_URL}${user.profile_image}?t=${Date.now()}`;
+
+      const base = BACKEND_URL.replace(/\/$/, "");
+      const path = user.profile_image.replace(/^\//, "");
+
+      return `${base}/${path}?t=${user.updated_at ?? ""}`;
     }
 
-    return "/avater.png";
+    // // 3️⃣ Default avatar
+    return null;
   };
-
   /* ================= SAVE PROFILE ================= */
   const handleSaveProfile = async (e) => {
     e.preventDefault();

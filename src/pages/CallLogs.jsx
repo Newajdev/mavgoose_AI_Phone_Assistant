@@ -68,10 +68,6 @@ export default function CallLogs() {
         firstLoadRef.current = false;
       }
 
-      toast.success(
-        `Call logs loaded for ${selectedStore?.name || "store"}`,
-        { id: "calllogs-store" }
-      );
     } catch (err) {
       console.error(err);
       toast.error("Failed to load call logs", {

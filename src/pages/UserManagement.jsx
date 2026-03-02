@@ -28,7 +28,7 @@ const ROLE_VALUE_MAP = {
   Staff: "STAFF",
 };
 
-const BACKEND_URL = "http://172.252.13.97:8020";
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 export default function UserManagement() {
   const { role, getActiveStoreId } =
@@ -100,12 +100,8 @@ export default function UserManagement() {
             : null,
         };
       });
-      // console.log(formatted);
       setUsers(formatted);
 
-      if (showToast) {
-        toast.success("Users updated", { id: "users-refetch" });
-      }
     } catch (err) {
       console.error("Failed to load users", err);
       toast.error("Failed to load users", { id: "users-error" });
@@ -113,7 +109,6 @@ export default function UserManagement() {
       setLoading(false);
     }
   };
-
 
 
   /* ================= STORE CHANGE ================= */

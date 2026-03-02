@@ -149,11 +149,7 @@ export default function PricingList() {
       setPricingData(data);
       setCurrentPage(1);
 
-      toast.success(
-        `Pricing loaded for ${selectedStore?.name || "store"
-        }`,
-        { id: "pricing-store" }
-      );
+
     } catch (err) {
       console.error(err);
       toast.error("Failed to load pricing", {

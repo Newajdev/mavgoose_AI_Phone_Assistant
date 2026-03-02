@@ -47,9 +47,7 @@ export default function Notifications() {
       // Apply active filter
       applyFilter(mapped, activeFilter);
 
-      if (showToast) {
-        toast.success("Notifications updated", { id: "notifications-refetch" });
-      }
+
     } catch (error) {
       console.error("Notification fetch failed", error?.response?.data || error);
       toast.error("Failed to load notifications", { id: "notifications-error" });
