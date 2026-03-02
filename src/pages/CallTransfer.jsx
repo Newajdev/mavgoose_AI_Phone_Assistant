@@ -82,12 +82,7 @@ export default function CallTransfer() {
       setContacts(contactsData || []);
       setRules(rulesData || []);
 
-      toast.success(
-        `Call transfer loaded for ${
-          selectedStore?.name || "store"
-        }`,
-        { id: "calltransfer-store" }
-      );
+
     } catch (err) {
       console.error(err);
       toast.error("Failed to load call transfer data", {

@@ -145,7 +145,7 @@ export default function AISettings() {
       });
 
       if (showToast) {
-        toast.success("AI settings updated for selected store");
+        // toast.success("AI settings updated for selected store");
       }
     } catch (err) {
       if (err.response?.status === 404) {
@@ -154,7 +154,7 @@ export default function AISettings() {
           toast("No AI settings found for this store");
         }
       } else {
-        console.error("Failed to load AI behavior", err);
+        // console.error("Failed to load AI behavior", err);
         toast.error("Failed to load AI settings");
       }
     } finally {
@@ -177,10 +177,10 @@ export default function AISettings() {
       if (notFound) {
         await createAIBehaviorApi(storeId, payload);
         setNotFound(false);
-        toast.success("AI Settings created successfully ✅");
+        // toast.success("AI Settings created successfully ✅");
       } else {
         await updateAIBehaviorApi(storeId, payload);
-        toast.success("AI Settings saved successfully ✅");
+        // toast.success("AI Settings saved successfully ✅");
       }
     } catch (err) {
       console.error(err.response?.data || err);

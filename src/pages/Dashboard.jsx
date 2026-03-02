@@ -77,10 +77,7 @@ export default function Dashboard() {
       // store summary
       setStoreSummary(summaryRes?.data?.[0] || null);
 
-      toast.success(
-        `Dashboard loaded for ${selectedStore?.name || "store"}`,
-        { id: "store-change" }
-      );
+
     } catch (error) {
       console.error("Dashboard API Error:", error);
       toast.error("Failed to load dashboard data", { id: "store-change" });
